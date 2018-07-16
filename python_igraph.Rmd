@@ -1,0 +1,123 @@
+---
+title: "Structural controllability of regime shifts"
+author: Juan Rocha
+output: html_notebook
+---
+
+
+
+
+```{r}
+
+Sys.setenv(PATH = paste("/anaconda/bin", Sys.getenv("PATH"),sep=":"))
+
+# ## clean and load packages
+rm(list = ls())
+set.seed(12345)
+library (tidyverse)
+library (igraph)
+library(reticulate)
+
+system("python -V")
+```
+Fist I read the data and keep only the regime shift 'coral transitions' as an example.
+
+```{r data, cache = T}
+### Read CLD data# load CLD
+dat <- read_csv2('~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv')
+dat <- dat[,-1]
+dat$col <- ifelse(dat$Polarity == -1, "#FC8D62","#1F78B4")
+
+g <- filter(dat, `Regime Shift` == "Coral transitions") %>% droplevels()
+G <- graph_from_data_frame(d = g, directed = TRUE)
+
+# .Call(feedback_arc_set, PACKAGE = 'igraph')
+as_edgelist(G)
+
+# vertex_names <- unique(c(as.character(g$Tail), as.character(g$Head)))
+
+    # unique(g$Tail)
+    #
+    # levels(g$Tail)
+g
+```
+
+Now `dat` is the dataset, the object is a `r class(dat)`. `G` is the network object in igraph. I have written a function in python to calculate the feedback arc set based on it's igraph functionality `fas.py`.
+
+```{r}
+# the following approach does not works
+setwd("~/Documents/Projects/Cascading Effects/Domino")
+source_python("fas.py")
+g.py <- r_to_py(g)
+FAS <- feedback_set(dat = g.py)
+# Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
+as_edgelist(G)[fas+1, 1]
+```
+
+Remember than indexing in python starts in zero while in R it stars in 1. That's why to recover the list of edges that belong to the feedback arc set (FAS) one needs to add 1 to the object in R.
+
+Now that I have a working example, let's try to scale it up.
+
+```{r}
+fas_all <- dat %>%
+    split(.$`Regime Shift`) %>%
+    map(r_to_py) %>%
+    map(feedback_set)
+
+net_all <- dat %>%
+    split(.$`Regime Shift`) %>%
+    select(1:4) %>%
+    map(graph_from_data_frame, directed = TRUE) %>%
+    map(delete_vertices, )
+
+```
+
+<!-- ```{python}
+repl_python()
+from igraph import *
+import pandas as pd
+print(r.g)
+
+edgeslist = list(r.g[["Tail", "Head"]].itertuples(index=False, name = None))
+
+G = Graph.TupleList(edges = edgeslist, directed = True)
+print(G)
+fas = Graph.feedback_arc_set(G)
+``` -->
+
+
+
+
+
+<!-- ```{python}
+
+## this is old code
+from igraph import *
+import pandas as pd
+
+
+df = pd.read_csv("~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv",
+    error_bad_lines=False, sep = ";", header = 0)
+
+edgelist = df.loc[:,["Tail", "Head"]]
+
+tuples = [tuple(x) for x in edgelist.values]
+
+#g = Graph()
+#g.add_edges(tuples)
+
+g = Graph.GRG(30,0.2)
+g.layout("kk")
+
+#plot(g)
+
+df = pd.read_csv("~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv",
+    error_bad_lines=False, sep = ";", header = 0)
+
+g = Graph.GRG(30,0.2)
+summary(g)
+
+arcs = g.feedback_arc_set()
+print(arcs)
+
+``` -->
