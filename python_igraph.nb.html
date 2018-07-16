@@ -98,6 +98,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -177,15 +180,9 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuU3lzLnNldGVudihQQVRIID0gcGFzdGUoXCIvYW5hY29uZGEvYmluXCIsIFN5cy5nZXRlbnYoXCJQQVRIXCIpLHNlcD1cIjpcIikpXG4jICMjIGNsZWFuIGFuZCBsb2FkIHBhY2thZ2VzXG5ybShsaXN0ID0gbHMoKSlcbnNldC5zZWVkKDEyMzQ1KVxubGlicmFyeSAodGlkeXZlcnNlKVxubGlicmFyeSAoaWdyYXBoKVxubGlicmFyeShyZXRpY3VsYXRlKVxuc3lzdGVtKFwicHl0aG9uIC1WXCIpXG5gYGAifQ== -->
-<pre class="r"><code>Sys.setenv(PATH = paste(&quot;/anaconda/bin&quot;, Sys.getenv(&quot;PATH&quot;),sep=&quot;:&quot;))
-# ## clean and load packages
-rm(list = ls())
-set.seed(12345)
-library (tidyverse)
-library (igraph)
-library(reticulate)
-system(&quot;python -V&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3lzdGVtKFwicHl0aG9uIC1WXCIpXG5cbmBgYCJ9 -->
+<pre class="r"><code>system(&quot;python -V&quot;)
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiUHl0aG9uIDIuNy4xMyA6OiBBbmFjb25kYSBjdXN0b20gKHg4Nl82NClcbiJ9 -->
 <pre><code>Python 2.7.13 :: Anaconda custom (x86_64)</code></pre>
@@ -195,46 +192,185 @@ system(&quot;python -V&quot;)</code></pre>
 <p>Fist I read the data and keep only the regime shift ‘coral transitions’ as an example.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibmNvbCI6OSwibnJvdyI6NDB9LCJyZGYiOiJINHNJQUFBQUFBQUFBKzFZWDAvYk1CQVBiWUUxby93WkQ5UGVMTzBGWGlwdG1qYjJoSUN1OUdFTVJFRkRlN3VtYm1QSnRTdkhIV3hQKzJiN0dudmNSOWduWUx1RU9HMlNocVFDcEdtcnBmWjh2N3ZZZDJlZmM4NXA0K0tsZldGYmxsV3l5cFVGcTFUR2JxV0Vmd3RXeGFyNjlNcXl5cHZZOFpsMS9HMkZndkpoNnpEc3JoNXdOZ0JOaWVPQzZOTzB3dWF4UTBFUWNGaVg5WmdEbWtrUmlsYk9WUWNFK3pxSjJTZVM4NUVHb2IwUWVkcW1RTHlSNm9GRGlhYURJVldnUjhwTVZmc2s1UldxdTVSek1PRFNnVlRBelFoUHpseXFCc0FKQ0NHUk1tb2t0UWJ0U1VVOVBXbENyVTI3YkVCRkRGejdpRTRxZ2hOMzBCSDlKWVFmNy9VVmMwWjh3cURxaDVGV2pJNGRTQVB2NVNYUnJCdVpFVGZYUGdKSFNlRDl5SjNVQXlsZzR4Z0RvSWdqTVR5YWFhbW1EMTFRYmEzQlBBb2UzWElDZE5zWTFob3A5QlpFTkcwYWVkYWdBeEJkZ21IRm4reVNnR0VkcW9vcUxEZVo1ekxSbjg2dTdnM3BGUmtxMm9VSjgrMFd4WFg1N0M5bEpySnBuSElqeVhiMjQ2azFXRGtYUStEUVlYeTgrbkVzbmlQVEV5Tm5NOStTTElrOWtrcVR1THhBVmt4VnlVdTJHVklqUGxzcUNUS2VTZ2MrTHpueTVKbDdmZ2JWUXVrUlY0cHpPWEdkY296YzI3NmYvdVFEWkVOYWEzSWtOTVRQanQxZlZ0Q1M5SHNHbjhUemFKNStjdHhaYWVZNFAyZWJMMDh2UzQ2dFp2bW56Ti9mMXEzeGFiaDBCSW9KT3VmbVhBNFgzemNid1NsS3RBTGhNZitkNDgwRmM4RmM4TzhJVEw1amlmZ2JXeWE5R2VEdG5zTDZ5YVVlSmNPb0F2WUI0c0dBRXZDSUYxYW9YbkN4aU1yTDNkd0ovbDlhYkFIbXRGZ2N3L0w5K1l2bW01MzlWd1haNXNGTzQvWExndExibGUvQzNtWGsyNDE4T1BiaFluVVhNKzdScWxBNS9tMXUwZUhnbWRQVGdEWmU4YURlVTNnVUp0VUZZa2E5R29LVk0yRGM5RnNVdW1ILzBZbmtXSXhGRjd2RkJ1VVFNZnRNRHFKcjRDbnQ0MmxMMmk3cmFhUFFkb0JISHdKUDN6Vk4xNUU4WVZWVnljdTZzY3kvMXBTKzRSOG0wdzhrMXdubFpUa00zeGdsLzV2a1VzTDNoYk1rb0JKQXhZK09INlVBdTJtMXNMODEwYS9lVEZ3MktiMFVoUndjTnlwWHFlaVBpOWRGdkFwVEU4cFY5Q3B3cWo3RWl0YUV4VWJVcTJ1cHdlalpHQkNEQk81YTEzOEFDcG9uODVRVkFBQT0ifQ== -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Tail"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Head"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Polarity"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Delay"],"name":[4],"type":["int"],"align":["right"]},{"label":["Biome"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Regime Shift"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Scale"],"name":[7],"type":["chr"],"align":["left"]},{"label":["REF"],"name":[8],"type":["chr"],"align":["left"]},{"label":["col"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"GHG","2":"Climate change","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Climate change","2":"Sea surface temperature","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"GHG","2":"Ocean acidification","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Ocean acidification","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Urbanization","2":"Pollutants","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"Are these pollutants the same as sediments and turbidity?","8":"NA","9":"#1F78B4"},{"1":"Pollutants","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Sea surface temperature","2":"Zooxanthellae","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Zooxanthellae","2":"Corals","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Corals","2":"Zooxanthellae","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Thermal annomalies","2":"Sea surface temperature","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Deforestation","2":"Sedimentation","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Sedimentation","2":"Water turbidity","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Water turbidity","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Agriculture","2":"Nutrients","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Nutrients","2":"Water turbidity","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Nutrients","2":"Macroalgae","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Low tides","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Corals","2":"Macroalgae","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Macroalgae","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Low tides","2":"Macroalgae","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Low tides","2":"Other competitors","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Other competitors","2":"Macroalgae","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Corals","2":"Other competitors","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Other competitors","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Corals","2":"Disease(corals)","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Disease(corals)","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Hurricanes","2":"Corals","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Hurricanes","2":"Sea surface temperature","3":"-0.5","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Demand for food and fiber","2":"Agriculture","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Demand for food and fiber","2":"Fishing","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Fishing","2":"Apex predators","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Fishing","2":"Herbivores","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Apex predators","2":"Herbivores","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Herbivores","2":"Apex predators","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Herbivores","2":"Disease(herbivores)","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Disease(herbivores)","2":"Herbivores","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Herbivores","2":"Macroalgae","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"},{"1":"Macroalgae","2":"Unpalability","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Unpalability","2":"Macroalgae","3":"1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#1F78B4"},{"1":"Unpalability","2":"Herbivores","3":"-1.0","4":"0","5":"Marine","6":"Coral transitions","7":"NA","8":"NA","9":"#FC8D62"}],"options":{"columns":{"min":{},"max":[10],"total":[9]},"rows":{"min":[10],"max":[10],"total":[40]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyMjIFJlYWQgQ0xEIGRhdGEjIGxvYWQgQ0xEXG5kYXQgPC0gcmVhZF9jc3YyKCd+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3YnKVxuZGF0IDwtIGRhdFssLTFdXG5kYXQkY29sIDwtIGlmZWxzZShkYXQkUG9sYXJpdHkgPT0gLTEsIFwiI0ZDOEQ2MlwiLFwiIzFGNzhCNFwiKVxuXG5nIDwtIGZpbHRlcihkYXQsIGBSZWdpbWUgU2hpZnRgID09IFwiQ29yYWwgdHJhbnNpdGlvbnNcIikgJT4lIGRyb3BsZXZlbHMoKVxuRyA8LSBncmFwaF9mcm9tX2RhdGFfZnJhbWUoZCA9IGcsIGRpcmVjdGVkID0gVFJVRSlcblxuIyAuQ2FsbChmZWVkYmFja19hcmNfc2V0LCBQQUNLQUdFID0gJ2lncmFwaCcpXG5hc19lZGdlbGlzdChHKVxuXG4jIHZlcnRleF9uYW1lcyA8LSB1bmlxdWUoYyhhcy5jaGFyYWN0ZXIoZyRUYWlsKSwgYXMuY2hhcmFjdGVyKGckSGVhZCkpKVxuXG4gICAgIyB1bmlxdWUoZyRUYWlsKVxuICAgICNcbiAgICAjIGxldmVscyhnJFRhaWwpXG5nXG5gYGAifQ== -->
+<pre class="r"><code>### Read CLD data# load CLD
+dat &lt;- read_csv2('~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv')
+dat &lt;- dat[,-1]
+dat$col &lt;- ifelse(dat$Polarity == -1, &quot;#FC8D62&quot;,&quot;#1F78B4&quot;)
+
+g &lt;- filter(dat, `Regime Shift` == &quot;Coral transitions&quot;) %&gt;% droplevels()
+G &lt;- graph_from_data_frame(d = g, directed = TRUE)
+
+# .Call(feedback_arc_set, PACKAGE = 'igraph')
+as_edgelist(G)
+
+# vertex_names &lt;- unique(c(as.character(g$Tail), as.character(g$Head)))
+
+    # unique(g$Tail)
+    #
+    # levels(g$Tail)
+g</code></pre>
+<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Now <code>dat</code> is the dataset, the object is a tbl_df, tbl, data.frame. <code>G</code> is the network object in igraph.</p>
+<p>Now <code>dat</code> is the dataset, the object is a tbl_df, tbl, data.frame. <code>G</code> is the network object in igraph. I have written a function in python to calculate the feedback arc set based on it’s igraph functionality <code>fas.py</code>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgcHl0aG9uXG48IS0tIHJlcGxfcHl0aG9uKCkgLS0+XG5mcm9tIGlncmFwaCBpbXBvcnQgKlxuaW1wb3J0IHBhbmRhcyBhcyBwZFxucHJpbnQoci5nKVxuXG5lZGdlc2xpc3QgPSBsaXN0KHIuZ1tbXCJUYWlsXCIsIFwiSGVhZFwiXV0uaXRlcnR1cGxlcyhpbmRleD1GYWxzZSwgbmFtZSA9IE5vbmUpKVxuXG5HID0gR3JhcGguVHVwbGVMaXN0KGVkZ2VzID0gZWRnZXNsaXN0KVxucHJpbnQoRylcbkZBUyA9IEdyYXBoLmZlZWRiYWNrX2FyY19zZXQoRylcblxuYGBgIn0= -->
-<pre class="python"><code>&lt;!-- repl_python() --&gt;
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyB0aGUgZm9sbG93aW5nIGFwcHJvYWNoIGRvZXMgbm90IHdvcmtzXG5zb3VyY2VfcHl0aG9uKFwiZmFzLnB5XCIpXG5nLnB5IDwtIHJfdG9fcHkoZylcbkZBUyA8LSBmZWVkYmFja19zZXQoZGF0ID0gZy5weSlcbiMgSGVyZSBJIG5lZWQgZmFzKzEgYmVjYXVzZSBvZiBweXRob24gaW5kZXhpbmcsIGFuZCB0aGUgMXJzdCBjb2x1bW4gYmVjYXVzZSBpdCdzIHRoZSBzb3VyY2Ugb2YgdGhlIGxpbmsuIEFjY29yZGluZyB0byBaaG91IDIwMTYgRlZTIGFuZCBGQVMgcHJvYmxlbXMgYXJlIGVxdWl2YWxlbnQuIE15IGludGVycHJldGF0aW9uIGlzIHRoYXQgc29sdmluZyB0aGUgRkFTIHByb2JsZW0gZ2l2ZXMgdGhlIG9yaWdpbiB2ZXJ0ZXggb2YgdGhlIEZWUyBwcm9ibGVtLlxuYXNfZWRnZWxpc3QoRylbRkFTKzEsIDFdXG5gYGAifQ== -->
+<pre class="r"><code># the following approach does not works
+source_python(&quot;fas.py&quot;)
+g.py &lt;- r_to_py(g)
+FAS &lt;- feedback_set(dat = g.py)
+# Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
+as_edgelist(G)[FAS+1, 1]</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Remember than indexing in python starts in zero while in R it stars in 1. That’s why to recover the list of edges that belong to the feedback arc set (FAS) one needs to add 1 to the object in R.</p>
+<p>Now that I have a working example, let’s try to scale it up.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmVydGljZXNfY29udHJvbFxuXG5gYGAifQ== -->
+<pre class="r"><code>vertices_control
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiJGBBcmN0aWMgQmVudGhvcyBCb3JlYWxpc2F0aW9uYFxuWzFdIFwiU2VhIEljZSBleHRlbnRcIiBcIkdyYXplcnNcIiAgICAgICAgXCJTZWEgYW5lbW9uZXNcIiAgIFwiTWFjcm9waHl0ZXNcIiAgIFxuXG4kYEFyY3RpYyBTZWEtSWNlIExvc3NgXG5bMV0gXCJBYnNvcnB0aW9uIG9mIHNvbGFyIHJhZGlhdGlvblwiIFwiT3BlbiB3YXRlciBpbiBzdW1tZXJcIiAgICAgICAgIFxuXG4kYEJpdmFsdmVzIGNvbGxhcHNlYFxuWzFdIFwiQmlvZGl2ZXJzaXR5XCIgICAgICAgICBcIkxvY2FsIHdhdGVyIG1vdmVtZW50XCIgXCJIZXJiaXZvcmVzXCIgICAgICAgICAgIFwiRmlzaGluZ1wiICAgICAgICAgICAgIFxuWzVdIFwiSGFydmVzdFwiICAgICAgICAgICAgIFxuXG4kYEJ1c2ggZW5jcm9hY2htZW50YFxuWzFdIFwiR3Jhc3NcIiAgICAgICAgIFwiU29pbCBtb2lzdHVyZVwiIFwiRmlyZVwiICAgICAgICAgXG5cbiRgQ29uaWZlcm91cyB0byBkZWNpZHVvdXMgZm9yZXN0YFxuWzFdIFwiRGVwdGggb2Ygc29pbCBvcmdhbmljIGxheWVyXCIgXCJBbGJlZG9cIiAgICAgICAgICAgICAgICAgICAgICBcIkZyYWdtZW50YXRpb25cIiAgICAgICAgICAgICAgXG5bNF0gXCJGdWVsIHF1YW50aXR5XCIgICAgICAgICAgICAgIFxuXG4kYENvcmFsIHRyYW5zaXRpb25zYFxuWzFdIFwiWm9veGFudGhlbGxhZVwiICAgICAgIFwiTWFjcm9hbGdhZVwiICAgICAgICAgIFwiQ29yYWxzXCIgICAgICAgICAgICAgIFwiRGlzZWFzZShjb3JhbHMpXCIgICAgIFwiQXBleCBwcmVkYXRvcnNcIiAgICAgXG5bNl0gXCJEaXNlYXNlKGhlcmJpdm9yZXMpXCJcblxuJERlc2VydGlmaWNhdGlvblxuWzFdIFwiU29pbCBxdWFsaXR5XCIgIFwiUHJlY2lwaXRhdGlvblwiIFwiUm9vdHNcIiAgICAgICAgXG5cbiRgRmlzaGVyaWVzIGNvbGxhcHNlYFxuWzFdIFwiTWF0aW5nIHByb2JhYmlsaXR5XCIgICAgICAgICAgICAgICAgICAgXCJDb21wZXRpdG9ycyBvbiBzYW1lIGZ1bmN0aW9uYWwgZ3JvdXBcIlxuWzNdIFwiTWVzbyBwcmVkYXRvcnNcIiAgICAgICAgICAgICAgICAgICAgICAgXCJBcGV4IHByZWRhdG9yc1wiICAgICAgICAgICAgICAgICAgICAgIFxuWzVdIFwiSmVsbHkgZmlzaFwiICAgICAgICAgICAgICAgICAgICAgICAgICAgXCJab29wbGFua3RvblwiICAgICAgICAgICAgICAgICAgICAgICAgIFxuXG4kYEZsb2F0aW5nIHBsYW50c2BcblsxXSBcIk51dHJpZW50cyBpbiB3YXRlclwiICAgICBcIk51dHJpZW50cyBpbiBzZWRpbWVudHNcIiBcIlBob3Rvc3ludGhlc2lzXCIgICAgICAgIFxuXG4kYEZvcmVzdCB0byBzYXZhbm5hYFxuWzFdIFwiTGlmdGluZyBjb25kZW5zYXRpb24gbGV2ZWxcIiBcIlByZWNpcGl0YXRpb25cIiAgICAgICAgICAgICAgXCJSb3VnaG5lc3NcIiAgICAgICAgICAgICAgICAgXG5bNF0gXCJIZXJiaXZvcmVzXCIgICAgICAgICAgICAgICAgIFwiU2F2YW5uYVwiICAgICAgICAgICAgICAgICAgIFxuXG4kYEZyZXNod2F0ZXIgZXV0cm9waGljYXRpb25gXG5bMV0gXCJGaXNoXCIgICAgICAgIFwiTWFjcm9waHl0ZXNcIiBcIlAgaW4gd2F0ZXJcIiBcblxuJGBHcmVlbmxhbmQgSWNlIFNoZWV0IGNvbGxhcHNlYFxuWzFdIFwiQWJzb3JwdGlvbiBvZiBzb2xhciByYWRpYXRpb25cIiAgIFwiR2xhY2llciBleHBsc2lvbiB0byB3YXZlIGFjdGlvblwiIFwiSWNlIHNsaWRpbmcgdmVsb2NpdHlcIiAgICAgICAgICAgXG5bNF0gXCJNZWx0d2F0ZXIgZHJhaW5hZ2VcIiAgICAgICAgICAgICBcblxuJEh5cG94aWFcblsxXSBcIk51dHJpZW50cyBpbiB3YXRlclwiIFwiT3JnYW5pYyBtYXR0ZXJcIiAgICAgXCJab29wbGFua3RvblwiICAgICAgICBcIkh5ZHJvc3VsZnVyaWMgYWNpZFwiIFwiRmlzaFwiICAgICAgICAgICAgICBcblxuJGBLZWxwcyB0cmFuc2l0aW9uc2BcblsxXSBcIkNhbm9weS1mb3JtaW5nIGFsZ2FlXCIgXCJVcmNoaW4gYmFycmVuc1wiICAgICAgIFwiQXBleCBwcmVkYXRvcnNcIiAgICAgIFxuXG4kYE1hbmdyb3ZlcyB0cmFuc2l0aW9uc2BcblsxXSBcIk1hbmdyb3Zlc1wiICAgICAgXCJTaHJpbXAgZmFybWluZ1wiIFwiU2FsdCBtYXJzaGVzXCIgICBcIkZyYWdtZW50YXRpb25cIiBcblxuJGBNYXJpbmUgZXV0cm9waGljYXRpb25gXG5bMV0gXCJOdXRyaWVudHMgaW4gd2F0ZXJcIiBcIkFwZXggcHJlZGF0b3JzXCIgICAgIFwiRmlzaFwiICAgICAgICAgICAgICBcblxuJGBNYXJpbmUgZm9vZHdlYnNgXG5bMV0gXCJCaW9kaXZlcnNpdHlcIiAgICAgICAgXCJNZXNvIHByZWRhdG9yc1wiICAgICAgXCJQbGFua3Rpdm9yZSBmaXNoXCIgICAgXCJab29wbGFua3RvblwiICAgICAgICAgXCJQaHl0b3BsYW5rdG9uL2FsZ2FlXCJcbls2XSBcIkZpc2hpbmdcIiAgICAgICAgICAgICBcIk51dHJpZW50c1wiICAgICAgICAgIFxuXG4kTW9vbnNvblxuWzFdIFwiQWR2ZWN0aW9uXCJcblxuJGBQZWF0bGFuZCB0cmFuc2l0aW9uc2BcblsxXSBcIkV2YXBvdHJhbnNwaXJhdGlvblwiICAgICAgICAgICAgXCJTb2lsIG51dHJpZW50c1wiICAgICAgICAgICAgICAgIFwiVmFzY3VsYXIgcGxhbnQgZG9taW5hbmNlXCIgICAgIFxuWzRdIFwiUGVhdCBsYXllciB0aGlja25lc3NcIiAgICAgICAgICBcIkFjaWRpdHlcIiAgICAgICAgICAgICAgICAgICAgICAgXCJTcGhhZ251bSBtb3NzIGRvbWluYW5jZVwiICAgICAgXG5bN10gXCJFbGV2YXRlZCBtaWNyb2Zvcm1zIGRvbWluYW5jZVwiXG5cbiRgUHJpbWFyeSBwcm9kdWN0aW9uIEFyY3RpYyBPY2VhbmBcblsxXSBcIlRlbXBlcmF0dXJlXCIgICAgICAgICAgICAgICAgIFwiV2luZCBzdHJlc3NcIiAgICAgICAgICAgICAgICAgXCJTZWEgc3VyZmFjZSB0ZW1wZXJhdHVyZVwiICAgIFxuWzRdIFwiWm9vcGxhbmt0b25cIiAgICAgICAgICAgICAgICAgXCJGaXNoXCIgICAgICAgICAgICAgICAgICAgICAgICBcIkZpc2hpbmdcIiAgICAgICAgICAgICAgICAgICAgXG5bN10gXCJJY2UtZGVwZW5kZW50IHByZWRhdG9yc1wiICAgICBcIk5vbi1pY2UtZGVwZW5kZW50IHByZWRhdG9yc1wiXG5cbiRgUml2ZXIgY2hhbm5lbCBjaGFuZ2VgXG5bMV0gXCJEaXNjaGFyZ2VcIiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwiRGVmZW5zZSBpbmZyYXN0cnVjdHVyZVwiICAgICAgICAgICAgICAgICAgIFxuWzNdIFwiU3VwZXJsb2Jlc1wiICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcIkVjb25vbWljIG9wcG9ydHVuaXRpZXMgYW5kIHRyYW5zcG9ydGF0aW9uXCJcblxuJGBTYWx0IG1hcnNoZXMgdG8gdGlkYWwgZmxhdHNgXG5bMV0gXCJTb2lsIGJ1aWxkIHVwXCIgIFwiU2FsaW5pdHlcIiAgICAgICBcIkhlcmJpdm9yZXNcIiAgICAgXCJNZXNvIHByZWRhdG9yc1wiXG5cbiRgU2VhZ3Jhc3MgdHJhbnNpdGlvbnNgXG5bMV0gXCJTZWFncmFzcyBoYWJpdGF0XCIgIFwiRnJhZ21lbnRhdGlvblwiICAgICBcIlNlYWdyYXNzXCIgICAgICAgICAgXCJMaWdodCBwZW5ldHJhdGlvblwiIFwiRmlzaGluZ1wiICAgICAgICAgIFxuWzZdIFwiTWVzbyBwcmVkYXRvcnNcIiAgICBcIkFwZXggcHJlZGF0b3JzXCIgICBcblxuJGBTb2lsIFNhbGluaXphdGlvbmBcblsxXSBcIklycmlnYXRpb25cIiAgICAgICAgXCJTb2lsIHNhbGluaXR5XCIgICAgIFwiTmF0aXZlIHZlZ2V0YXRpb25cIiBcIkdyYXplcnNcIiAgICAgICAgICBcblxuJGBTcHJhd2xpbmcgdnMgY29tcGFjdCBjaXR5YFxuWzFdIFwiSm9ic1wiICAgICAgICAgICAgIFwiSHVtYW4gd2VsbCBiZWluZ1wiIFwiUHJpdmF0ZSBjYXIgdXNlXCIgIFwiVHJhZmZpY1wiICAgICAgICAgXG5cbiRgU3RlcHBlIHRvIFR1bmRyYWBcblsxXSBcIlNvaWwgbW9pc3R1cmVcIiAgICAgXCJTb2lsIG51dHJpZW50c1wiICAgIFwiU3RlcHBlIHZlZ2V0YXRpb25cIlxuXG4kYFRoZXJtb2hhbGluZSBjaXJjdWxhdGlvbmBcblsxXSBcIkNsaW1hdGUgY2hhbmdlXCIgXCJPdmVydHVybmluZ1wiICAgXG5cbiRgVGhlcm1va2Fyc3QgbGFrZXNgXG5bMV0gXCJDbGltYXRlIGNoYW5nZVwiICAgICAgICAgIFwiQWxiZWRvXCIgICAgICAgICAgICAgICAgICBcIkFjdGl2ZSBwZXJtYWZyb3N0IGxheWVyXCIgXCJMYWtlXCIgICAgICAgICAgICAgICAgICAgXG5cbiRgVHVuZHJhIHRvIGZvcmVzdGBcblsxXSBcIkFsYmVkb1wiICAgICAgICAgICBcIkF0bW9zcGhlcmljIFRcIiAgICBcIlNub3dpbmcgZHJpZnRpbmdcIlxuXG4kV0FJU1xuWzFdIFwiSW50cnVzaW9uIG9mIHdhcm0gb2NlYW4gd2F0ZXIgYmVuZWF0aCBpY2UgKENEVylcIiBcIkFsYmVkb1wiICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcbiJ9 -->
+<pre><code>$`Arctic Benthos Borealisation`
+[1] &quot;Sea Ice extent&quot; &quot;Grazers&quot;        &quot;Sea anemones&quot;   &quot;Macrophytes&quot;   
+
+$`Arctic Sea-Ice Loss`
+[1] &quot;Absorption of solar radiation&quot; &quot;Open water in summer&quot;         
+
+$`Bivalves collapse`
+[1] &quot;Biodiversity&quot;         &quot;Local water movement&quot; &quot;Herbivores&quot;           &quot;Fishing&quot;             
+[5] &quot;Harvest&quot;             
+
+$`Bush encroachment`
+[1] &quot;Grass&quot;         &quot;Soil moisture&quot; &quot;Fire&quot;         
+
+$`Coniferous to deciduous forest`
+[1] &quot;Depth of soil organic layer&quot; &quot;Albedo&quot;                      &quot;Fragmentation&quot;              
+[4] &quot;Fuel quantity&quot;              
+
+$`Coral transitions`
+[1] &quot;Zooxanthellae&quot;       &quot;Macroalgae&quot;          &quot;Corals&quot;              &quot;Disease(corals)&quot;     &quot;Apex predators&quot;     
+[6] &quot;Disease(herbivores)&quot;
+
+$Desertification
+[1] &quot;Soil quality&quot;  &quot;Precipitation&quot; &quot;Roots&quot;        
+
+$`Fisheries collapse`
+[1] &quot;Mating probability&quot;                   &quot;Competitors on same functional group&quot;
+[3] &quot;Meso predators&quot;                       &quot;Apex predators&quot;                      
+[5] &quot;Jelly fish&quot;                           &quot;Zooplankton&quot;                         
+
+$`Floating plants`
+[1] &quot;Nutrients in water&quot;     &quot;Nutrients in sediments&quot; &quot;Photosynthesis&quot;        
+
+$`Forest to savanna`
+[1] &quot;Lifting condensation level&quot; &quot;Precipitation&quot;              &quot;Roughness&quot;                 
+[4] &quot;Herbivores&quot;                 &quot;Savanna&quot;                   
+
+$`Freshwater eutrophication`
+[1] &quot;Fish&quot;        &quot;Macrophytes&quot; &quot;P in water&quot; 
+
+$`Greenland Ice Sheet collapse`
+[1] &quot;Absorption of solar radiation&quot;   &quot;Glacier explsion to wave action&quot; &quot;Ice sliding velocity&quot;           
+[4] &quot;Meltwater drainage&quot;             
+
+$Hypoxia
+[1] &quot;Nutrients in water&quot; &quot;Organic matter&quot;     &quot;Zooplankton&quot;        &quot;Hydrosulfuric acid&quot; &quot;Fish&quot;              
+
+$`Kelps transitions`
+[1] &quot;Canopy-forming algae&quot; &quot;Urchin barrens&quot;       &quot;Apex predators&quot;      
+
+$`Mangroves transitions`
+[1] &quot;Mangroves&quot;      &quot;Shrimp farming&quot; &quot;Salt marshes&quot;   &quot;Fragmentation&quot; 
+
+$`Marine eutrophication`
+[1] &quot;Nutrients in water&quot; &quot;Apex predators&quot;     &quot;Fish&quot;              
+
+$`Marine foodwebs`
+[1] &quot;Biodiversity&quot;        &quot;Meso predators&quot;      &quot;Planktivore fish&quot;    &quot;Zooplankton&quot;         &quot;Phytoplankton/algae&quot;
+[6] &quot;Fishing&quot;             &quot;Nutrients&quot;          
+
+$Moonson
+[1] &quot;Advection&quot;
+
+$`Peatland transitions`
+[1] &quot;Evapotranspiration&quot;            &quot;Soil nutrients&quot;                &quot;Vascular plant dominance&quot;     
+[4] &quot;Peat layer thickness&quot;          &quot;Acidity&quot;                       &quot;Sphagnum moss dominance&quot;      
+[7] &quot;Elevated microforms dominance&quot;
+
+$`Primary production Arctic Ocean`
+[1] &quot;Temperature&quot;                 &quot;Wind stress&quot;                 &quot;Sea surface temperature&quot;    
+[4] &quot;Zooplankton&quot;                 &quot;Fish&quot;                        &quot;Fishing&quot;                    
+[7] &quot;Ice-dependent predators&quot;     &quot;Non-ice-dependent predators&quot;
+
+$`River channel change`
+[1] &quot;Discharge&quot;                                 &quot;Defense infrastructure&quot;                   
+[3] &quot;Superlobes&quot;                                &quot;Economic opportunities and transportation&quot;
+
+$`Salt marshes to tidal flats`
+[1] &quot;Soil build up&quot;  &quot;Salinity&quot;       &quot;Herbivores&quot;     &quot;Meso predators&quot;
+
+$`Seagrass transitions`
+[1] &quot;Seagrass habitat&quot;  &quot;Fragmentation&quot;     &quot;Seagrass&quot;          &quot;Light penetration&quot; &quot;Fishing&quot;          
+[6] &quot;Meso predators&quot;    &quot;Apex predators&quot;   
+
+$`Soil Salinization`
+[1] &quot;Irrigation&quot;        &quot;Soil salinity&quot;     &quot;Native vegetation&quot; &quot;Grazers&quot;          
+
+$`Sprawling vs compact city`
+[1] &quot;Jobs&quot;             &quot;Human well being&quot; &quot;Private car use&quot;  &quot;Traffic&quot;         
+
+$`Steppe to Tundra`
+[1] &quot;Soil moisture&quot;     &quot;Soil nutrients&quot;    &quot;Steppe vegetation&quot;
+
+$`Thermohaline circulation`
+[1] &quot;Climate change&quot; &quot;Overturning&quot;   
+
+$`Thermokarst lakes`
+[1] &quot;Climate change&quot;          &quot;Albedo&quot;                  &quot;Active permafrost layer&quot; &quot;Lake&quot;                   
+
+$`Tundra to forest`
+[1] &quot;Albedo&quot;           &quot;Atmospheric T&quot;    &quot;Snowing drifting&quot;
+
+$WAIS
+[1] &quot;Intrusion of warm ocean water beneath ice (CDW)&quot; &quot;Albedo&quot;                                         </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Next steps:</p>
+<blockquote>
+<ol style="list-style-type: decimal">
+<li>Do a test to see if it works: Delete the vertices found and then check if the remaining network is a tree.</li>
+<li>Check on Liu’s paper if the FVS (I’m assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear sysmtes.</li>
+</ol>
+</blockquote>
+<!-- ```{python}
+repl_python()
 from igraph import *
 import pandas as pd
 print(r.g)
 
-edgeslist = list(r.g[[&quot;Tail&quot;, &quot;Head&quot;]].itertuples(index=False, name = None))
+edgeslist = list(r.g[["Tail", "Head"]].itertuples(index=False, name = None))
 
-G = Graph.TupleList(edges = edgeslist)
+G = Graph.TupleList(edges = edgeslist, directed = True)
 print(G)
-FAS = Graph.feedback_arc_set(G)
-</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgcHl0aG9uXG5cbiMjIHRoaXMgaXMgb2xkIGNvZGVcbmZyb20gaWdyYXBoIGltcG9ydCAqXG5pbXBvcnQgcGFuZGFzIGFzIHBkXG5cblxuZGYgPSBwZC5yZWFkX2NzdihcIn4vRG9jdW1lbnRzL0pVQU4vUGhELVNSQy9SUzIwK0FuYWx5c2lzL1JTX0NMRF8yMDE2LmNzdlwiLFxuICAgIGVycm9yX2JhZF9saW5lcz1GYWxzZSwgc2VwID0gXCI7XCIsIGhlYWRlciA9IDApXG5cbmVkZ2VsaXN0ID0gZGYubG9jWzosW1wiVGFpbFwiLCBcIkhlYWRcIl1dXG5cbnR1cGxlcyA9IFt0dXBsZSh4KSBmb3IgeCBpbiBlZGdlbGlzdC52YWx1ZXNdXG5cbiNnID0gR3JhcGgoKVxuI2cuYWRkX2VkZ2VzKHR1cGxlcylcblxuZyA9IEdyYXBoLkdSRygzMCwwLjIpXG5nLmxheW91dChcImtrXCIpXG5cbiNwbG90KGcpXG5cbmRmID0gcGQucmVhZF9jc3YoXCJ+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3ZcIixcbiAgICBlcnJvcl9iYWRfbGluZXM9RmFsc2UsIHNlcCA9IFwiO1wiLCBoZWFkZXIgPSAwKVxuXG5nID0gR3JhcGguR1JHKDMwLDAuMilcbnN1bW1hcnkoZylcblxuYXJjcyA9IGcuZmVlZGJhY2tfYXJjX3NldCgpXG5wcmludChhcmNzKVxuXG5gYGAifQ== -->
-<pre class="python"><code>
+fas = Graph.feedback_arc_set(G)
+``` -->
+<!-- ```{python}
+
 ## this is old code
 from igraph import *
 import pandas as pd
 
 
-df = pd.read_csv(&quot;~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv&quot;,
-    error_bad_lines=False, sep = &quot;;&quot;, header = 0)
+df = pd.read_csv("~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv",
+    error_bad_lines=False, sep = ";", header = 0)
 
-edgelist = df.loc[:,[&quot;Tail&quot;, &quot;Head&quot;]]
+edgelist = df.loc[:,["Tail", "Head"]]
 
 tuples = [tuple(x) for x in edgelist.values]
 
@@ -242,23 +378,23 @@ tuples = [tuple(x) for x in edgelist.values]
 #g.add_edges(tuples)
 
 g = Graph.GRG(30,0.2)
-g.layout(&quot;kk&quot;)
+g.layout("kk")
 
 #plot(g)
 
-df = pd.read_csv(&quot;~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv&quot;,
-    error_bad_lines=False, sep = &quot;;&quot;, header = 0)
+df = pd.read_csv("~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv",
+    error_bad_lines=False, sep = ";", header = 0)
 
 g = Graph.GRG(30,0.2)
 summary(g)
 
 arcs = g.feedback_arc_set()
 print(arcs)
-</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiU3RydWN0dXJhbCBjb250cm9sbGFiaWxpdHkgb2YgcmVnaW1lIHNoaWZ0cyIKYXV0aG9yOiBKdWFuIFJvY2hhCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCgoKCmBgYHtyfQoKU3lzLnNldGVudihQQVRIID0gcGFzdGUoIi9hbmFjb25kYS9iaW4iLCBTeXMuZ2V0ZW52KCJQQVRIIiksc2VwPSI6IikpCgojICMjIGNsZWFuIGFuZCBsb2FkIHBhY2thZ2VzCnJtKGxpc3QgPSBscygpKQpzZXQuc2VlZCgxMjM0NSkKbGlicmFyeSAodGlkeXZlcnNlKQpsaWJyYXJ5IChpZ3JhcGgpCmxpYnJhcnkocmV0aWN1bGF0ZSkKCnN5c3RlbSgicHl0aG9uIC1WIikKYGBgCkZpc3QgSSByZWFkIHRoZSBkYXRhIGFuZCBrZWVwIG9ubHkgdGhlIHJlZ2ltZSBzaGlmdCAnY29yYWwgdHJhbnNpdGlvbnMnIGFzIGFuIGV4YW1wbGUuCgpgYGB7ciBkYXRhLCBjYWNoZSA9IFR9CiMjIyBSZWFkIENMRCBkYXRhIyBsb2FkIENMRApkYXQgPC0gcmVhZF9jc3YyKCd+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3YnKQpkYXQgPC0gZGF0WywtMV0KZGF0JGNvbCA8LSBpZmVsc2UoZGF0JFBvbGFyaXR5ID09IC0xLCAiI0ZDOEQ2MiIsIiMxRjc4QjQiKQoKZyA8LSBmaWx0ZXIoZGF0LCBgUmVnaW1lIFNoaWZ0YCA9PSAiQ29yYWwgdHJhbnNpdGlvbnMiKSAlPiUgZHJvcGxldmVscygpCkcgPC0gZ3JhcGhfZnJvbV9kYXRhX2ZyYW1lKGQgPSBnLCBkaXJlY3RlZCA9IFRSVUUpCgojIC5DYWxsKGZlZWRiYWNrX2FyY19zZXQsIFBBQ0tBR0UgPSAnaWdyYXBoJykKYXNfZWRnZWxpc3QoRykKCnZlcnRleF9uYW1lcyA8LSB1bmlxdWUoYyhhcy5jaGFyYWN0ZXIoZyRUYWlsKSwgYXMuY2hhcmFjdGVyKGckSGVhZCkpKQoKICAgICMgdW5pcXVlKGckVGFpbCkKICAgICMgCiAgICAjIGxldmVscyhnJFRhaWwpCmcKYGBgCgpOb3cgYGRhdGAgaXMgdGhlIGRhdGFzZXQsIHRoZSBvYmplY3QgaXMgYSBgciBjbGFzcyhkYXQpYC4gYEdgIGlzIHRoZSBuZXR3b3JrIG9iamVjdCBpbiBpZ3JhcGguCgpgYGB7cHl0aG9ufQo8IS0tIHJlcGxfcHl0aG9uKCkgLS0+CmZyb20gaWdyYXBoIGltcG9ydCAqCmltcG9ydCBwYW5kYXMgYXMgcGQKcHJpbnQoci5nKQoKZWRnZXNsaXN0ID0gbGlzdChyLmdbWyJUYWlsIiwgIkhlYWQiXV0uaXRlcnR1cGxlcyhpbmRleD1GYWxzZSwgbmFtZSA9IE5vbmUpKQoKRyA9IEdyYXBoLlR1cGxlTGlzdChlZGdlcyA9IGVkZ2VzbGlzdCkKcHJpbnQoRykKRkFTID0gR3JhcGguZmVlZGJhY2tfYXJjX3NldChHKQoKYGBgCgoKCgoKYGBge3B5dGhvbn0KCiMjIHRoaXMgaXMgb2xkIGNvZGUKZnJvbSBpZ3JhcGggaW1wb3J0ICoKaW1wb3J0IHBhbmRhcyBhcyBwZAoKCmRmID0gcGQucmVhZF9jc3YoIn4vRG9jdW1lbnRzL0pVQU4vUGhELVNSQy9SUzIwK0FuYWx5c2lzL1JTX0NMRF8yMDE2LmNzdiIsCiAgICBlcnJvcl9iYWRfbGluZXM9RmFsc2UsIHNlcCA9ICI7IiwgaGVhZGVyID0gMCkKCmVkZ2VsaXN0ID0gZGYubG9jWzosWyJUYWlsIiwgIkhlYWQiXV0KCnR1cGxlcyA9IFt0dXBsZSh4KSBmb3IgeCBpbiBlZGdlbGlzdC52YWx1ZXNdCgojZyA9IEdyYXBoKCkKI2cuYWRkX2VkZ2VzKHR1cGxlcykKCmcgPSBHcmFwaC5HUkcoMzAsMC4yKQpnLmxheW91dCgia2siKQoKI3Bsb3QoZykKCmRmID0gcGQucmVhZF9jc3YoIn4vRG9jdW1lbnRzL0pVQU4vUGhELVNSQy9SUzIwK0FuYWx5c2lzL1JTX0NMRF8yMDE2LmNzdiIsCiAgICBlcnJvcl9iYWRfbGluZXM9RmFsc2UsIHNlcCA9ICI7IiwgaGVhZGVyID0gMCkKCmcgPSBHcmFwaC5HUkcoMzAsMC4yKQpzdW1tYXJ5KGcpCgphcmNzID0gZy5mZWVkYmFja19hcmNfc2V0KCkKcHJpbnQoYXJjcykKCmBgYAo=</div>
+``` -->
+<!-- rnb-text-end -->
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiU3RydWN0dXJhbCBjb250cm9sbGFiaWxpdHkgb2YgcmVnaW1lIHNoaWZ0cyIKYXV0aG9yOiBKdWFuIFJvY2hhCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCgoKCmBgYHtyfQoKU3lzLnNldGVudihQQVRIID0gcGFzdGUoIi9hbmFjb25kYS9iaW4iLCBTeXMuZ2V0ZW52KCJQQVRIIiksc2VwPSI6IikpCgojICMjIGNsZWFuIGFuZCBsb2FkIHBhY2thZ2VzCnJtKGxpc3QgPSBscygpKQpzZXQuc2VlZCgxMjM0NSkKbGlicmFyeSAodGlkeXZlcnNlKQpsaWJyYXJ5IChpZ3JhcGgpCmxpYnJhcnkocmV0aWN1bGF0ZSkKCnN5c3RlbSgicHl0aG9uIC1WIikKYGBgCkZpc3QgSSByZWFkIHRoZSBkYXRhIGFuZCBrZWVwIG9ubHkgdGhlIHJlZ2ltZSBzaGlmdCAnY29yYWwgdHJhbnNpdGlvbnMnIGFzIGFuIGV4YW1wbGUuCgpgYGB7ciBkYXRhLCBjYWNoZSA9IFR9CiMjIyBSZWFkIENMRCBkYXRhIyBsb2FkIENMRApkYXQgPC0gcmVhZF9jc3YyKCd+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3YnKQpkYXQgPC0gZGF0WywtMV0KZGF0JGNvbCA8LSBpZmVsc2UoZGF0JFBvbGFyaXR5ID09IC0xLCAiI0ZDOEQ2MiIsIiMxRjc4QjQiKQoKZyA8LSBmaWx0ZXIoZGF0LCBgUmVnaW1lIFNoaWZ0YCA9PSAiQ29yYWwgdHJhbnNpdGlvbnMiKSAlPiUgZHJvcGxldmVscygpCkcgPC0gZ3JhcGhfZnJvbV9kYXRhX2ZyYW1lKGQgPSBnLCBkaXJlY3RlZCA9IFRSVUUpCgojIC5DYWxsKGZlZWRiYWNrX2FyY19zZXQsIFBBQ0tBR0UgPSAnaWdyYXBoJykKYXNfZWRnZWxpc3QoRykKCiMgdmVydGV4X25hbWVzIDwtIHVuaXF1ZShjKGFzLmNoYXJhY3RlcihnJFRhaWwpLCBhcy5jaGFyYWN0ZXIoZyRIZWFkKSkpCgogICAgIyB1bmlxdWUoZyRUYWlsKQogICAgIwogICAgIyBsZXZlbHMoZyRUYWlsKQpnCmBgYAoKTm93IGBkYXRgIGlzIHRoZSBkYXRhc2V0LCB0aGUgb2JqZWN0IGlzIGEgYHIgY2xhc3MoZGF0KWAuIGBHYCBpcyB0aGUgbmV0d29yayBvYmplY3QgaW4gaWdyYXBoLiBJIGhhdmUgd3JpdHRlbiBhIGZ1bmN0aW9uIGluIHB5dGhvbiB0byBjYWxjdWxhdGUgdGhlIGZlZWRiYWNrIGFyYyBzZXQgYmFzZWQgb24gaXQncyBpZ3JhcGggZnVuY3Rpb25hbGl0eSBgZmFzLnB5YC4KCmBgYHtyfQojIHRoZSBmb2xsb3dpbmcgYXBwcm9hY2ggZG9lcyBub3Qgd29ya3MKc291cmNlX3B5dGhvbigiZmFzLnB5IikKZy5weSA8LSByX3RvX3B5KGcpCkZBUyA8LSBmZWVkYmFja19zZXQoZGF0ID0gZy5weSkKIyBIZXJlIEkgbmVlZCBmYXMrMSBiZWNhdXNlIG9mIHB5dGhvbiBpbmRleGluZywgYW5kIHRoZSAxcnN0IGNvbHVtbiBiZWNhdXNlIGl0J3MgdGhlIHNvdXJjZSBvZiB0aGUgbGluay4gQWNjb3JkaW5nIHRvIFpob3UgMjAxNiBGVlMgYW5kIEZBUyBwcm9ibGVtcyBhcmUgZXF1aXZhbGVudC4gTXkgaW50ZXJwcmV0YXRpb24gaXMgdGhhdCBzb2x2aW5nIHRoZSBGQVMgcHJvYmxlbSBnaXZlcyB0aGUgb3JpZ2luIHZlcnRleCBvZiB0aGUgRlZTIHByb2JsZW0uCmFzX2VkZ2VsaXN0KEcpW0ZBUysxLCAxXQpgYGAKClJlbWVtYmVyIHRoYW4gaW5kZXhpbmcgaW4gcHl0aG9uIHN0YXJ0cyBpbiB6ZXJvIHdoaWxlIGluIFIgaXQgc3RhcnMgaW4gMS4gVGhhdCdzIHdoeSB0byByZWNvdmVyIHRoZSBsaXN0IG9mIGVkZ2VzIHRoYXQgYmVsb25nIHRvIHRoZSBmZWVkYmFjayBhcmMgc2V0IChGQVMpIG9uZSBuZWVkcyB0byBhZGQgMSB0byB0aGUgb2JqZWN0IGluIFIuCgpOb3cgdGhhdCBJIGhhdmUgYSB3b3JraW5nIGV4YW1wbGUsIGxldCdzIHRyeSB0byBzY2FsZSBpdCB1cC4KCmBgYHtyfQpmYXNfYWxsIDwtIGRhdCAlPiUKICAgIHNwbGl0KC4kYFJlZ2ltZSBTaGlmdGApICU+JQogICAgbWFwKHJfdG9fcHkpICU+JQogICAgbWFwKGZlZWRiYWNrX3NldCkKCiMjIGNvcnJlY3QgdGhlIGluZGV4aW5nIGZyb20gcHl0aG9uIHRvIFIgYnkgYWRkaW5nIDEKZmFzX2FsbCA8LSBsYXBwbHkoZmFzX2FsbCwgZnVuY3Rpb24oeCkgeCArIDEpCgpuZXRfYWxsIDwtIGRhdCAlPiUKICAgIHNwbGl0KC4kYFJlZ2ltZSBTaGlmdGApICU+JQojIyBOb3RlOiBJIG5lZWQgdG8gdXNlIHRoZSB+IHRvIHRlbGwgbWFwIHRvIGRvIHRoZSBzZWxlY3QgaW4gZWFjaCBkYXRhZnJhbWUuIE90aGVyd2lzZSBJIGdldCBhbiBlcnJvcgogICAgbWFwKH5zZWxlY3QoLiwgMTo0KSkgJT4lCiAgICBtYXAoZ3JhcGhfZnJvbV9kYXRhX2ZyYW1lLCBkaXJlY3RlZCA9IFRSVUUpCgoKIyMgIEkgZG9uJ3QgbmVlZCB2ZXRleCBuYW1lcyByZW1lbWJlcj8gdGhlIEZlZWRiYWNrIEFyYyBTZXQgZ2l2ZXMgbWUgdGhlIGFyY3MgKGVkZ2VzKSwgCiMjIHRoZW4gSSBzaG91bGQgZXh0cmFjdCB0aGUgdW5pcXVlIHNvdXJjZSBub2Rlcy4KZWRnZXNfYWxsIDwtIG5ldF9hbGwgJT4lCiAgICBtYXAoYXNfZWRnZWxpc3QpICU+JQogICAgbWFwKGFzX3RpYmJsZSkgJT4lCiAgICBtYXAofnB1bGwoLiwgVjEpKQoKdmVydGljZXNfY29udHJvbCA8LSBtYXAyKGVkZ2VzX2FsbCwgZmFzX2FsbCwgYFtgKSAlPiUKICAgIG1hcCh1bmlxdWUpCgpgYGAKCk5leHQgc3RlcHM6Cgo+IDEuIERvIGEgdGVzdCB0byBzZWUgaWYgaXQgd29ya3M6IERlbGV0ZSB0aGUgdmVydGljZXMgZm91bmQgYW5kIHRoZW4gY2hlY2sgaWYgdGhlIHJlbWFpbmluZyBuZXR3b3JrIGlzIGEgdHJlZS4KPiAyLiBDaGVjayBvbiBMaXUncyBwYXBlciBpZiB0aGUgRlZTIChJJ20gYXNzdW1pbmcgaXMgdGhlIHNvdXJjZSBub2RlIGZvciBhbGwgRkFTIGVkZ2VzKSBpcyBlbm91Z2ggdG8gY29udHJvbCB0aGUgbmV0d29yaywgb3IgaWYgaW4gYWRkaXRpb24sIG9uZSBuZWVkcyB0byBmaW5kIHRoZSB1bm1hdGNoZWQgbm9kZXMgYXMgaW4gbGluZWFyIHN5c210ZXMuCgoKPCEtLSBgYGB7cHl0aG9ufQpyZXBsX3B5dGhvbigpCmZyb20gaWdyYXBoIGltcG9ydCAqCmltcG9ydCBwYW5kYXMgYXMgcGQKcHJpbnQoci5nKQoKZWRnZXNsaXN0ID0gbGlzdChyLmdbWyJUYWlsIiwgIkhlYWQiXV0uaXRlcnR1cGxlcyhpbmRleD1GYWxzZSwgbmFtZSA9IE5vbmUpKQoKRyA9IEdyYXBoLlR1cGxlTGlzdChlZGdlcyA9IGVkZ2VzbGlzdCwgZGlyZWN0ZWQgPSBUcnVlKQpwcmludChHKQpmYXMgPSBHcmFwaC5mZWVkYmFja19hcmNfc2V0KEcpCmBgYCAtLT4KCgoKCgo8IS0tIGBgYHtweXRob259CgojIyB0aGlzIGlzIG9sZCBjb2RlCmZyb20gaWdyYXBoIGltcG9ydCAqCmltcG9ydCBwYW5kYXMgYXMgcGQKCgpkZiA9IHBkLnJlYWRfY3N2KCJ+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3YiLAogICAgZXJyb3JfYmFkX2xpbmVzPUZhbHNlLCBzZXAgPSAiOyIsIGhlYWRlciA9IDApCgplZGdlbGlzdCA9IGRmLmxvY1s6LFsiVGFpbCIsICJIZWFkIl1dCgp0dXBsZXMgPSBbdHVwbGUoeCkgZm9yIHggaW4gZWRnZWxpc3QudmFsdWVzXQoKI2cgPSBHcmFwaCgpCiNnLmFkZF9lZGdlcyh0dXBsZXMpCgpnID0gR3JhcGguR1JHKDMwLDAuMikKZy5sYXlvdXQoImtrIikKCiNwbG90KGcpCgpkZiA9IHBkLnJlYWRfY3N2KCJ+L0RvY3VtZW50cy9KVUFOL1BoRC1TUkMvUlMyMCtBbmFseXNpcy9SU19DTERfMjAxNi5jc3YiLAogICAgZXJyb3JfYmFkX2xpbmVzPUZhbHNlLCBzZXAgPSAiOyIsIGhlYWRlciA9IDApCgpnID0gR3JhcGguR1JHKDMwLDAuMikKc3VtbWFyeShnKQoKYXJjcyA9IGcuZmVlZGJhY2tfYXJjX3NldCgpCnByaW50KGFyY3MpCgpgYGAgLS0+Cg==</div>
 
 
 

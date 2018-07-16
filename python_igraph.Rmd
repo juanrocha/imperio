@@ -46,12 +46,11 @@ Now `dat` is the dataset, the object is a `r class(dat)`. `G` is the network obj
 
 ```{r}
 # the following approach does not works
-setwd("~/Documents/Projects/Cascading Effects/Domino")
 source_python("fas.py")
 g.py <- r_to_py(g)
 FAS <- feedback_set(dat = g.py)
 # Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
-as_edgelist(G)[fas+1, 1]
+as_edgelist(G)[FAS+1, 1]
 ```
 
 Remember than indexing in python starts in zero while in R it stars in 1. That's why to recover the list of edges that belong to the feedback arc set (FAS) one needs to add 1 to the object in R.
@@ -64,13 +63,33 @@ fas_all <- dat %>%
     map(r_to_py) %>%
     map(feedback_set)
 
+## correct the indexing from python to R by adding 1
+fas_all <- lapply(fas_all, function(x) x + 1)
+
 net_all <- dat %>%
     split(.$`Regime Shift`) %>%
-    select(1:4) %>%
-    map(graph_from_data_frame, directed = TRUE) %>%
-    map(delete_vertices, )
+## Note: I need to use the ~ to tell map to do the select in each dataframe. Otherwise I get an error
+    map(~select(., 1:4)) %>%
+    map(graph_from_data_frame, directed = TRUE)
+
+
+##  I don't need vetex names remember? the Feedback Arc Set gives me the arcs (edges), 
+## then I should extract the unique source nodes.
+edges_all <- net_all %>%
+    map(as_edgelist) %>%
+    map(as_tibble) %>%
+    map(~pull(., V1))
+
+vertices_control <- map2(edges_all, fas_all, `[`) %>%
+    map(unique)
 
 ```
+
+Next steps:
+
+> 1. Do a test to see if it works: Delete the vertices found and then check if the remaining network is a tree.
+> 2. Check on Liu's paper if the FVS (I'm assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear sysmtes.
+
 
 <!-- ```{python}
 repl_python()
