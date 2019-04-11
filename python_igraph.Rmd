@@ -24,7 +24,7 @@ Fist I read the data and keep only the regime shift 'coral transitions' as an ex
 
 ```{r data, cache = T}
 ### Read CLD data# load CLD
-dat <- read_csv2('~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2016.csv')
+dat <- read_csv2('~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2018.csv')
 dat <- dat[,-1]
 dat$col <- ifelse(dat$Polarity == -1, "#FC8D62","#1F78B4")
 
@@ -87,8 +87,39 @@ vertices_control <- map2(edges_all, fas_all, `[`) %>%
 
 Next steps:
 
-> 1. Do a test to see if it works: Delete the vertices found and then check if the remaining network is a tree.
-> 2. Check on Liu's paper if the FVS (I'm assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear sysmtes.
+1. Do a test to see if it works: Delete the vertices found and then check if the remaining network is a tree.
+2. Check on Liu's paper if the FVS (I'm assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear sysmtes.
+
+### Testing
+
+```{r}
+## delete vertices for one graph
+
+g_test <- delete_vertices(
+    graph = net_all[[1]],
+    v = which(V(net_all[[1]]) %>% names() %in% vertices_control[[1]])
+)
+
+## test if it's a tree or a DAG
+g_test %>% is.dag()
+```
+
+Now for all graphs:
+```{r}
+test_all <-map2(.x = net_all, .y = vertices_control, function(x,y){
+        delete_vertices(
+            graph = x,
+            v = which(names(V(x)) %in% y)
+        )
+    })
+
+test_all %>% map(., function(x)is.dag(x))
+```
+
+
+
+
+
 
 
 <!-- ```{python}
