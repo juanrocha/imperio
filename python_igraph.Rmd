@@ -4,22 +4,24 @@ author: Juan Rocha
 output: html_notebook
 ---
 
-
-
-
-```{r}
-
-Sys.setenv(PATH = paste("/anaconda/bin", Sys.getenv("PATH"),sep=":"))
+```{r setup}
+# Sys.setenv(
+#     RETICULATE_PYTHON = "anaconda3/bin/python",
+#     )
 
 # ## clean and load packages
-rm(list = ls())
 set.seed(12345)
-library (tidyverse)
-library (igraph)
+library(tidyverse)
+library(igraph)
 library(reticulate)
 
-system("python -V")
+use_python(python = "/anaconda3/bin/python")
+#use_condaenv()
+py_config()
+# py_install("igraph")
+# import("igraph")
 ```
+
 Fist I read the data and keep only the regime shift 'coral transitions' as an example.
 
 ```{r data, cache = T}
@@ -44,8 +46,19 @@ g
 
 Now `dat` is the dataset, the object is a `r class(dat)`. `G` is the network object in igraph. I have written a function in python to calculate the feedback arc set based on it's igraph functionality `fas.py`.
 
+```{python}
+import igraph
+import pandas as pd
+
+def feedback_set(dat):
+    edgelist = list(dat[["Tail", "Head"]].itertuples(index=False, name = None))
+    net = Graph.TupleList(edges = edgelist, directed = True)
+    fas = Graph.feedback_arc_set(net)
+    return fas
+```
+
+
 ```{r}
-# the following approach does not works
 source_python("fas.py")
 g.py <- r_to_py(g)
 FAS <- feedback_set(dat = g.py)
@@ -88,7 +101,7 @@ vertices_control <- map2(edges_all, fas_all, `[`) %>%
 Next steps:
 
 1. Do a test to see if it works: Delete the vertices found and then check if the remaining network is a tree.
-2. Check on Liu's paper if the FVS (I'm assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear sysmtes.
+2. Check on Liu's paper if the FVS (I'm assuming is the source node for all FAS edges) is enough to control the network, or if in addition, one needs to find the unmatched nodes as in linear systems.
 
 ### Testing
 
@@ -116,9 +129,82 @@ test_all <-map2(.x = net_all, .y = vertices_control, function(x,y){
 test_all %>% map(., function(x)is.dag(x))
 ```
 
+### Visualizations
+
+```{r}
+df_fvs <- tibble(
+    regime_shift = names(vertices_control),
+    fvs = map(vertices_control, function(x) x) 
+) %>% 
+    unnest(fvs)
+
+```
+```{r}
+df_fvs %>%
+    group_by(regime_shift) %>% 
+    summarise(n_fvs = n()) %>% 
+    mutate(regime_shift = as_factor(regime_shift) %>% 
+               fct_reorder(., n_fvs, sort)) %>% 
+    ggplot(aes(regime_shift, n_fvs)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "Regime shifts", y = "Feedback vertex set size") +
+    theme_light(base_size = 10)
+```
+
+```{r}
+df_fvs %>% 
+    group_by(fvs) %>% 
+    count() %>% 
+    arrange(desc(n)) 
+```
+I think one needs the unmatched nodes as well.
+
+## Matching
+
+First convert all networks to bipartite by using the edgelists of the CLDs. Instead of deleting vertices, delete the edges of the feedback arc set first. 
+
+```{r}
+# Delete the edges from the feedback arc set:
+
+dags_all <- map2(net_all, fas_all, delete_edges)
+
+dags_all %>% map(., function(x)is.dag(x))
+```
 
 
+```{r}
+bip_all <- dat %>%
+    mutate(
+        Tail = str_c(Tail, "t", sep = "_"),
+        Head = str_c(Head, "h", sep = "_")
+    ) %>% 
+    split(.$`Regime Shift`) %>%
+## Note: I need to use the ~ to tell map to do the select in each dataframe. Otherwise I get an error
+    map(~select(., 1:4)) %>%
+    map(graph_from_data_frame, directed = TRUE) %>% 
+    # delete the links of the feedback arc set: Although names are different, the order of links is the same
+    map2(fas_all, delete_edges) %>% 
+    map(., function(x) {
+        V(x)$type <- V(x) %>%
+            names() %>% str_detect("_t")
+        return(x)
+    })
 
+```
+
+```{r}
+matching <-  bip_all %>% 
+    map(max_bipartite_match)
+
+# minimum driver node set:
+df_mds <- tibble(
+    regime_shifts = names(vertices_control),
+    mds = map(matching, function(x) names(x$matching[is.na(x$matching)]) ) 
+) %>% 
+    unnest(mds) %>% 
+    mutate(mds = str_remove_all(mds, pattern = "_t|_h"))
+```
 
 
 
