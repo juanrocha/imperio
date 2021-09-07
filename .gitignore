@@ -7,3 +7,10 @@
 *.html
 .DS_Store
 *.nb.html
+*.pdf
+*.png
+*.jpg
+*.RData
+*.csl
+*.bib
+

@@ -1,0 +1,259 @@
+---
+title: "Structural controllability of regime shifts"
+author: Juan Rocha
+output:
+  html_notebook:
+    toc: yes
+    toc_float: yes
+    highlight: tango
+    code_folding: hide
+    df_print: paged
+    theme: 
+      bootswatch: cosmo
+      code_font:
+        google: Fira Code
+---
+
+
+
+```{r setup, include = FALSE}
+set.seed(12345)
+library(tidyverse)
+library(igraph)
+library(reticulate)
+library(tictoc)
+
+use_python(python = "/anaconda3/bin/python")
+```
+
+Load the CLD data from the regime shifts database:
+
+```{r warning = FALSE, message=FALSE}
+### Read CLD data# load CLD
+dat <- read.csv2(
+  file = '~/Documents/JUAN/PhD-SRC/RS20+Analysis/RS_CLD_2018.csv') %>% 
+  janitor::clean_names()
+dat <- dat[,-1]
+dat$col <- ifelse(dat$polarity == -1, "#FC8D62","#1F78B4")
+```
+
+
+```{python}
+import igraph
+import pandas as pd
+
+def feedback_set(dat):
+    edgelist = list(dat[["tail", "head"]].itertuples(index=False, name = None))
+    net = Graph.TupleList(edges = edgelist, directed = True)
+    fas = Graph.feedback_arc_set(net)
+    return fas
+```
+
+## Cascading networks
+
+```{r}
+key <- combn(unique(dat$regime_shift), m = 2, simplify = FALSE)
+
+source_python("fas.py")
+```
+
+Combine networks
+```{r}
+coupled_rs <- list()
+
+for (i in seq_along(key)) {
+  coupled_rs[[i]] <- dat %>% 
+    filter(regime_shift == key[[i]][1] | regime_shift == key[[i]][2]) 
+}
+```
+
+## Feedback vertex sets
+
+Map the feedback vertex set:
+```{r}
+tic()
+coupled_fas <- coupled_rs %>% 
+  map(r_to_py) %>%
+  map(feedback_set)
+toc()
+```
+```{r}
+coupled_fas <- lapply(coupled_fas, function(x) x + 1)
+coupled_nets <- coupled_rs %>% 
+  map(~select(., 1:4)) %>%
+  map(graph_from_data_frame, directed = TRUE)
+
+edges_all <- coupled_nets %>%
+    map(as_edgelist) %>%
+    map(as_tibble) %>%
+    map(~pull(., V1))
+
+vertices_control <- map2(edges_all, coupled_fas, `[`) %>%
+    map(unique)
+```
+Test if they are DAGs:
+```{r}
+test_all <-map2(.x = coupled_nets, .y = vertices_control, function(x,y){
+        delete_vertices(
+            graph = x,
+            v = which(names(V(x)) %in% y)
+        )
+    })
+
+test_all %>% 
+  map(., function(x)is.dag(x)) %>% 
+  all()
+
+```
+
+## Maximum matching
+
+```{r}
+# Delete the edges from the feedback arc set:
+dags_all <- map2(coupled_nets, coupled_fas, delete_edges)
+
+dags_all %>% map(., function(x)is.dag(x)) %>% all()
+```
+
+```{r}
+bip_all <- coupled_rs %>%
+    map(., function(x) x %>% mutate(
+        tail = str_c(tail, "t", sep = "_"),
+        head = str_c(head, "h", sep = "_")
+    )) %>% 
+    map(~select(., 1:4)) %>%
+    map(graph_from_data_frame, directed = TRUE) %>% 
+    # delete the links of the feedback arc set: Although names are different, the order of links is the same
+    map2(coupled_fas, delete_edges) %>% 
+    map(., function(x) {
+        V(x)$type <- V(x) %>%
+            names() %>% str_detect("_t")
+        return(x)
+    })
+```
+
+```{r}
+matching <-  bip_all %>% 
+    map(max_bipartite_match)
+
+## I need to sort the key to later recover alphabetic order
+key <- map(key, sort)
+
+# minimum driver node set:
+df_mds <- tibble(
+    couple = map_chr(key, str_c, collapse = "_"),
+    mds = map(matching, function(x) names(x$matching[is.na(x$matching)]) ) 
+) %>% 
+    unnest(mds) %>% 
+    mutate(mds = str_remove_all(mds, pattern = "_t|_h"))
+```
+
+```{r}
+df_mds %>% 
+  group_by(couple) %>% 
+  summarize(mds = n()) %>% 
+  separate(col = couple, into = c("rs1", "rs2"), sep = "_") %>% 
+  mutate(rs1 = as_factor(rs1) ,
+         rs2 = as_factor(rs2) ) %>% 
+  ggplot(aes(rs2, rs1)) +
+  geom_tile(aes(fill = mds)) +
+  scico::scale_fill_scico(palette = "roma", direction = -1) +
+  theme_light() +
+  theme(axis.text.x = element_text(angle=90, hjust = 1))
+```
+
+Use key object to create a dataframe with the combinatorics of reigme shifts and some basic stats: n_nodes per coupled network, n_nodes of the fvs, n_nodes of the mds. Make sure to keep both the numbers and identity of the nodes so you can use them to find intersections (avoid over inflating stats if there is repetitions)
+
+```{r}
+
+
+
+df_fvs <- tibble(
+    couple = map_chr(key, str_c, collapse = "_"),
+    fvs = map(vertices_control, function(x) x)) %>% 
+    unnest(fvs)
+
+df_stats <- tibble(
+  couple =  map_chr(key, str_c, collapse = "_"),
+  nodes_comb = map_dbl(
+      coupled_nets, function(x) length(get.vertex.attribute(x)$name))
+)
+
+df_fvs <- df_fvs %>% 
+    rename(node = fvs) %>% 
+    mutate(type = "fvs")
+
+df_mds <- df_mds %>% 
+    rename(node = mds) %>% 
+    mutate(type = "mds")
+
+df_comb <- bind_rows(
+    unique(df_fvs), 
+    unique(df_mds))
+
+df_comb <- df_comb %>%
+    group_by(couple, node) %>% 
+    add_count( ) %>%  
+    filter((type != "mds" | n != 2)) 
+```
+
+
+Create a figure matrix with main results with proportions, and key variables across dataset
+
+```{r fig.height=7, fig.width=7}
+df_comb %>% 
+  select(-n) %>% 
+  group_by(couple) %>% 
+  add_count() %>% ungroup() %>% 
+  separate(couple, into = c("rs1", "rs2"), sep = "_")  %>% 
+  mutate(rs1 = as_factor(rs1) ,
+         rs2 = as_factor(rs2) ) %>% 
+  ggplot(aes(rs2, rs1)) +
+  geom_tile(aes(fill = n)) +
+  scico::scale_fill_scico(palette = "roma", direction = -1) +
+  theme_light() +
+  theme(axis.text.x = element_text(angle=90, hjust = 1))
+```
+
+```{r}
+df_comb %>% 
+  ungroup() %>% group_by(node) %>% 
+  select(node) %>% 
+  summarise(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  filter(n>100) %>% 
+  mutate(node = as_factor(node),
+         node = fct_reorder(node, n, sort)) %>% 
+  ggplot(aes(node, n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Most common driver nodes", y = "Number of regime shifts pair-wise combinations")+
+  theme_light()
+```
+
+```{r}
+df_stats <- df_comb %>% ungroup() %>% 
+  select(-n, -node, -type) %>% 
+  group_by(couple) %>% 
+  summarize(ds = n()) %>% ungroup() %>% 
+  left_join(df_stats) %>% 
+  separate(couple, into = c("rs1", "rs2"), sep = "_")  %>% 
+  arrange(desc(rs1), desc(rs2)) %>% 
+  mutate(rs1 = as_factor(rs1),
+         rs2 = as_factor(rs2),
+         prop = ds/nodes_comb) #%>% pull(rs2) %>% levels()
+
+df_stats %>% 
+  ggplot(aes(rs2, rs1)) +
+  geom_tile(aes(fill = prop)) +
+  scico::scale_fill_scico(palette = "roma", direction = -1) +
+  theme_light() +
+  theme(axis.text.x = element_text(angle=90, hjust = 1))
+```
+
+```{r}
+## Save necessary datasets to reproduce figures:
+base::save(df_stats, df_fvs, df_mds, df_comb,
+     file = "data_processed/cascading_control.RData")
+```
+
