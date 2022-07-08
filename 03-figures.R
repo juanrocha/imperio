@@ -17,9 +17,13 @@ g1 <- df_comb %>%
     coord_flip() +
     scico::scale_fill_scico_d(
         palette = "berlin", name = "Controllability", 
-        labels = c("Feedback vertex set", "Minimum vertex set")) +
+        labels = c("Feedback vertex set", "Minimum vertex set"),
+        guide = guide_legend(#nrow = 2,
+                             title.position = 'top', 
+                             keywidth = unit(2.5, "mm"),
+                             keyheight = unit(2.5, "mm"))) +
     labs(x = "Number of driving nodes", y = "Regime shifts", tag = "A") +
-    theme_light(base_size = 7) + theme(legend.position = "bottom")
+    theme_light(base_size = 5) + theme(legend.position = "bottom")
 
 
 g2 <- df_comb %>% 
@@ -32,15 +36,20 @@ g2 <- df_comb %>%
     mutate(total = sum(n),
            regime_shift = as_factor(regime_shift),
            prop = n / nodes) %>% 
-    mutate(regime_shift = fct_rev(regime_shift)) %>% 
+    mutate(regime_shift = fct_rev(regime_shift)) %>%   
+    # select (regime_shift, prop) %>% summarise(prop = sum(prop)) %>%  arrange(desc(prop))
     ggplot(aes(prop, regime_shift )) +
     geom_col(aes(fill = type), position = "stack") +
     scico::scale_fill_scico_d(
         palette = "berlin", name = "Controllability", 
-        labels = c("Feedback vertex set", "Minimum vertex set")) +
+        labels = c("Feedback vertex set", "Minimum vertex set"),
+        guide = guide_legend(#nrow = 2,
+                             title.position = 'top', 
+                             keywidth = unit(2.5, "mm"),
+                             keyheight = unit(2.5, "mm"))) +
     scale_x_continuous(labels = scales::percent) +
     labs(x = "Proportion of nodes", y = "", tag = "B") +
-    theme_light(base_size = 7) + 
+    theme_light(base_size = 5) + 
     theme(legend.position = "bottom", axis.text.y = element_blank())
 
 
@@ -51,7 +60,7 @@ g3 <- df_comb %>%
     summarize(n = n(), .groups = "keep") %>% 
     pivot_wider(names_from = type, values_from = n) %>% 
     mutate(total = sum(fvs, mds, na.rm = TRUE)) %>% 
-    arrange(desc(total)) %>% 
+    arrange((total)) %>% 
     filter(total > 3) %>% 
     mutate(node = as_factor(node)) %>% 
     mutate(node = fct_reorder(.f = node, .x = total, .desc = FALSE) %>% fct_rev()) %>%
@@ -61,9 +70,13 @@ g3 <- df_comb %>%
     geom_col(aes(fill = type), position = "stack") +
     scico::scale_fill_scico_d(
         palette = "berlin", name = "Controllability", 
-        labels = c("Feedback vertex set", "Minimum vertex set")) +
+        labels = c("Feedback vertex set", "Minimum vertex set"),
+        guide = guide_legend(#nrow = 2,
+                             title.position = 'top', 
+                             keywidth = unit(2.5, "mm"),
+                             keyheight = unit(2.5, "mm"))) +
     labs(x = "Number of regime shifts", y = "Control variables", tag = "C") +
-    theme_light(base_size = 7) + theme(legend.position = "bottom")
+    theme_light(base_size = 5) + theme(legend.position = "bottom")
 
 (g1 + g2 + g3) / guide_area() + plot_layout(guides = "collect", heights = c(3,0.5))
 
@@ -158,11 +171,11 @@ p4 <- df_comb %>%
 
 
 layout <- "
-ABBCCDD
-ABBCCDD
-ABBCCDD
-ABBCCDD
-#####DD
+ABBCCD
+ABBCCD
+ABBCCD
+ABBCCD
+#####D
 "
 
 p1 + p2 + p3 + p4 + 

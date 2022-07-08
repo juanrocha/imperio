@@ -43,7 +43,7 @@ library(here)
 
 Outline:
 
-1.  Intro [556/800w]
+1.  Intro \[609/800w\]
 
 -   Regime shifts challenging for management
 -   RS can be interconnected
@@ -51,80 +51,82 @@ Outline:
     to manage regime shifts?
 -   Structural and dynamic controllability
 
-2.  Methods [\>900/500w]
+2.  Methods \[\>914/500w\]
 
 -   Data: CLDs RSDB
 -   Models: pollution
 -   resource systems
 -   Control metrics
 
-3.  Results [800w]
-4.  Discussion [800w]
-5.  Conclusion [300w]
+3.  Results \[800w\]
+4.  Discussion \[800w\]
+5.  Conclusion \[300w\]
 
 # Introduction
 
 Regime shifts are large, abrupt and persistent changes in the function
-and structure of systems [@Anonymous:2004bq; @Scheffer:2001p2968]. They
-have been documented in a variety of social-ecological systems
-[@Scheffer:2009wl; @Biggs:2018hx], as well as climate [@Lenton:2019fv],
-finance[@Guttal:2016kl], or health [@vandeLeemput:2014eb], to name a few
-examples. Changes in structure and function of ecosystems can diminish
-the benefits people get from nature such as food production, employment
-opportunities, climate regulation, or water purification
-[@Carpenter:2009jr]. For example, the North Atlantic cod collapse
-represented X M of economic loss and compromised XX jobs. The weakening
-or late arrival of the Indian summer monsoon can compromise food
-production in one of the most densely populates regions of the world.
-How management strategies avoid regime shifts or recover natural
-ecosystems to desirable regimes are key research questions and an active
-area of research [].
+and structure of systems \[\@Anonymous:2004bq; \@Scheffer:2001p2968\].
+They have been documented in a variety of social-ecological systems
+\[\@Scheffer:2009wl; \@Biggs:2018hx\], as well as climate
+\[\@Lenton:2019fv\], finance\[\@Guttal:2016kl\], or health
+\[\@vandeLeemput:2014eb\], to name a few examples. Changes in structure
+and function of ecosystems can diminish the benefits people get from
+nature such as food production, employment opportunities, climate
+regulation, or water purification \[\@Carpenter:2009jr\]. For example,
+the North Atlantic cod collapse represented X M of economic loss and
+compromised XX jobs. The weakening or late arrival of the Indian summer
+monsoon can compromise food production in one of the most densely
+populates regions of the world. How management strategies avoid regime
+shifts or recover natural ecosystems to desirable regimes are key
+research questions and an active area of research \[\].
 
-Regime shifts can be interconnected [@Rocha:2018gn]. The occurrence of
-one can impact the likelihood of another through sequential tipping,
-like a domino effect [@Wunderling:fj; @Rocha:2018gn]; or through two-way
-interactions where new feedbacks can amplify or dampen the probability
-of tipping over [@Rocha:2018gn]. Conceptual work have look at these
-connections in the context of committed risk [@Steffen:2018ku;
-@Lenton:2019fv], and recent modeling work has look at interactions
-between climate tipping elements to understand additional challenges of
-prediction [@Dekker:2010p5900], or the role of minimal network
-configurations [@Wunderling:2020jk]. Besides climate, cascading effects
-have also been studied in the context of engineered systems
-[@Brummitt:2012it; @DSouza:2017hz], social and economic systems
-[@Lee:2011p6824, @Brummitt:2017cg; @Anonymous:2015jy], or diseases
-[@Watts:2005bq].
+Regime shifts can be interconnected \[\@Rocha:2018gn\]. The occurrence
+of one can impact the likelihood of another through sequential tipping,
+like a domino effect \[\@Wunderling:fj; \@Rocha:2018gn\]; or through
+two-way interactions where new feedbacks can amplify or dampen the
+probability of tipping over \[\@Rocha:2018gn\]. Conceptual work have
+look at these connections in the context of committed risk
+\[\@Steffen:2018ku; \@Lenton:2019fv\], and recent modeling work has look
+at interactions between climate tipping elements to understand
+additional challenges of prediction \[\@Dekker:2010p5900\], or the role
+of minimal network configurations \[\@Wunderling:2020jk\]. Besides
+climate, cascading effects have also been studied in the context of
+engineered systems \[\@Brummitt:2012it; \@DSouza:2017hz\], social and
+economic systems \[\@Lee:2011p6824, \@Brummitt:2017cg;
+\@Anonymous:2015jy\], or diseases \[\@Watts:2005bq\].
 
 The possibility of cascading regime shifts rises a few additional
 challenges for management. First, long distance coupling or
-teleconnections [@Liu:2015go] between regime shifts implies that optimal
-local or regional managerial practices might not be enough to reach
-managerial objectives [@Rocha:2018gn; @Anonymous:2015du]. This not only
-rises the governance issue of with whom does one need to coordinate for
-successful management of local resources; it also implies a tragedy of
-the commons with potential power asymmetries. Classical examples include
-transnational resource systems where pollution or exploitation of a
-resource in one side of the border impacts its quality on the other
-side, or downstream (e.g. see Young for rivers, Keys for moisture
-recycling). Second, and most importantly, connected regime shifts rises
-the challenge of identifying sufficient and appropriate points of
-intervention for managerial actions. On an interconnected world, how can
-we identify leverage points to manage regime shifts? Are there regime
-shifts -- or their interactions - that are harder to manage?
+teleconnections \[\@Liu:2015go\] between regime shifts implies that
+optimal local or regional managerial practices might not be enough to
+reach managerial objectives \[\@Rocha:2018gn; \@Anonymous:2015du\]. This
+not only rises the governance issue of with whom does one need to
+coordinate for successful management of local resources; it also implies
+a tragedy of the commons with potential power asymmetries. Classical
+examples include transnational resource systems where pollution or
+exploitation of a resource in one side of the border impacts its quality
+on the other side, or downstream (e.g. see Young for rivers, Keys for
+moisture recycling). Second, and most importantly, connected regime
+shifts rises the challenge of identifying sufficient and appropriate
+points of intervention for managerial actions. On an interconnected
+world, how can we identify leverage points to manage regime shifts? Are
+there regime shifts -- or their interactions - that are harder to
+manage?
 
 Here we answer these questions in the light of controllability of
 complex systems. A system is controllable if one can drive it from any
-initial state to any desired final state in finite time [@Kalman:1963bt;
-@Liu:2015wl; @Liu:2011p6911]. Hence, controllability quantifies our
-ability to steer dynamical systems [@Liu:2011p6911]. While control
-theory has been fairly well developed in the realm of linear systems,
-many open problems remain in the nonlinear one [@Cowan:2012fk;
-@Liu:2015wl]. Strict global controllability for nonlinear systems has
-been elusive, but weaker notions of controllability can be described
-[@Liu:2015wl; @Zanudo:2017hw; @Mochizuki:2013uz]. For example, open loop
-control has been used to steer chaotic systems to desired trajectories
-in the phase space. Here we focus on feedback vertex sets as a proxy of
-structural controllability [@Liu:2015wl; @Zanudo:2017hw] of regime
+initial state to any desired final state in finite time
+\[\@Kalman:1963bt; \@Liu:2015wl; \@Liu:2011p6911\]. Hence,
+controllability quantifies our ability to steer dynamical systems
+\[\@Liu:2011p6911\]. While control theory has been fairly well developed
+in the realm of linear systems, many open problems remain in the
+nonlinear one \[\@Cowan:2012fk; \@Liu:2015wl\]. Strict global
+controllability for nonlinear systems has been elusive, but weaker
+notions of controllability can be described \[\@Liu:2015wl;
+\@Zanudo:2017hw; \@Mochizuki:2013uz\]. For example, open loop control
+has been used to steer chaotic systems to desired trajectories in the
+phase space. Here we focus on feedback vertex sets as a proxy of
+structural controllability \[\@Liu:2015wl; \@Zanudo:2017hw\] of regime
 shifts and their interactions. We use network topology to gain insights
 on the controllability of regime shift and the management challenges of
 their cascading effects. We further test our intuitions with minimal
@@ -136,12 +138,12 @@ We study structural controllability first on a static setting, and then
 on minimal simulation experiments to approximate the dynamics of
 interconnected systems. For the static setting we used causal diagrams
 derived from the regime shifts database, an open online repository of
-regime shift reviews [@Biggs:2018hx]. The database offers causal graphs
-that summarize scientific hypotheses of how regime shifts work. Each
-directed graph (N=30) can be interpreted as a network where a link
+regime shift reviews \[\@Biggs:2018hx\]. The database offers causal
+graphs that summarize scientific hypotheses of how regime shifts work.
+Each directed graph (N=30) can be interpreted as a network where a link
 between two variables exist if a scientific paper has suggested a causal
-link in the occurrence of the regime shift [@Biggs:2018hx]. We use these
-networks to study structural controllability.
+link in the occurrence of the regime shift \[\@Biggs:2018hx\]. We use
+these networks to study structural controllability.
 
 **Feedback control:** To steer a nonlinear system to a desired
 attractor, one needs to find the feedback vertex set of the system. When
@@ -154,21 +156,21 @@ feedbacks, it is called a directed cyclic graph (DCG), and if it lacks
 them a directed acyclic graph (DAG). The feedback vertex set is the set
 of nodes that if deleted would render a DAG. The feedback arc set is the
 set of links that if eliminated would render a DAG. Finding the feedback
-vertex set or the arc set are equivalent problems [@Zhou:2016hu], yet
+vertex set or the arc set are equivalent problems \[\@Zhou:2016hu\], yet
 finding the minimum set is a nondeterministic polynomial-time hard
 (NP-hard) problem. Once the system is reduced to a DAG, linear control
 methods can be applied, such as finding unmatched nodes or the Kalman
-rank condition for linear systems [@Liu:2015wl; @Liu:2011p6911]. Hence,
-the set of nodes that need to be controlled to gain leverage on the
-behaviour of a nonlinear system are the feedback vertex set plus the
-unmatched nodes of the remaining linear system [@Zanudo:2017hw].
+rank condition for linear systems \[\@Liu:2015wl; \@Liu:2011p6911\].
+Hence, the set of nodes that need to be controlled to gain leverage on
+the behaviour of a nonlinear system are the feedback vertex set plus the
+unmatched nodes of the remaining linear system \[\@Zanudo:2017hw\].
 
 **Structural control on causal networks** We compute the proportion of
 nodes that needs to be controlled for all causal networks from the
 regime shifts database, as well as their pair-wise combinations. The
 pair-wise combinations have been used to study plausible mechanisms that
 can couple different types of regime shifts known as cascading effects
-[@Rocha:2018gn]. We then can compare how structural controllability
+\[\@Rocha:2018gn\]. We then compare how structural controllability
 change if ecological regime shifts are interconnected.
 
 **Dynamic control on minimal models** To further test our intuitions, we
@@ -207,7 +209,7 @@ $c_i \frac{y_i^{\beta_i}}{q_i^{\beta_i}+y_i^{\beta_i}}$ is a Holling
 type III predation function where $c_i$ represent refuges from predators
 in patch $i$, $q_i$ is the half saturation biomass for predators (e.g. a
 threshold for high to low abundance), and $\beta_i$ is the curvature
-parameter that defines the abruptness of the shift [@Holling:2012fq].
+parameter that defines the abruptness of the shift \[\@Holling:2012fq\].
 The last term indicates mobility of the resource between patches at a
 diffusion rate $d_{ij} \neq d_{ji}$, and an adjacency matrix $A_{ij}$
 that takes 1 if patches $i$ and $j$ are connected, or zero otherwise.
@@ -216,17 +218,96 @@ Here we concentrate our efforts in exploring numerical simulations on
 medium size interconnected systems ($N < 10^2$), with potentially
 multiple feedbacks. Analytical solutions for the low dimensional
 diffusion problem of our pollution and resource systems can be found in
-[Crépin 2021]. The computer code used for our simulations as well as the
-curated networks from the regime shifts database are available at:
+\[Crépin 2021\]. The computer code used for our simulations as well as
+the curated networks from the regime shifts database are available at:
 <https://github.com/juanrocha/imperio>
 
 # Results
+
+Individual regime shifts cannot be controlled or managed by only
+targeting variables that have been coded as drivers in the regime shifts
+database. Drivers there are defined as variables outside feedbacks that
+influence the dynamics of the system, but that are not in turn
+influenced by the system itself \[\@Biggs:2018hx\]; which inherits the
+logic first proposed by the Millennium Ecosystem Assessment \[\@MEA\].
+As recent advances in network controllability show \[\@Liu:2015wl;
+\@Zanudo:2017hw\], to steer the system towards a desired state an ideal
+manager needs to intervene not only drivers but also some of the
+variables involved in feedback dynamics. In all the individual regime
+shifts analyzed, an ideal manager need to account for the minimum
+control set of the DAG and the feedback vertex set (Fig \ref{fig:ind}).
+By number of driving nodes, regime shifts such as forest to savanna or
+sea grass transitions require higher efforts; but by proportion of
+nodes: thermokarst lakes, primary productivity in the Arctic ocean,
+tundra to forest, or marine food webs are among the regime shifts where
+\>60% of nodes need some intervention. The top controlling variables
+are, as expected, related to climate change, biodiversity loss, or food
+production (Fig \ref{fig:ind}C). We observe that trophic groups such as
+zooplankton, meso predators, or top predators are often part of the
+feedback vertex set, while fertilizers use, sewage or soil erosion are
+always part of the minimum control set of the DAG.
+
+```{=tex}
+\begin{figure*}[ht]
+\centering
+\includegraphics[width = 7in, height = 3in]{fig1_control-individua-rs}
+\caption{\textbf{Controlling individual regime shifts} }
+\label{fig:ind}
+\end{figure*}
+```
+Coupled regime shifts are harder to manage because the ideal manager
+needs to intervene more variables. However, the number and proportion of
+nodes to be controlled varies depending of the coupling (Fig
+\ref{fig:coup}). On average, coupled regime shifts are harder to manage
+that individual counterparts (Fig \ref{fig:coup}). For example,
+preventing the West Antarctica Ice Sheet collapse (WAIS) implies being
+able to intervene a minimum of 40% of the variables describing processes
+underlying the regime shift. But when combined with other regime shifts,
+the percentage goes up 49% on average, and a maximum of 64%. Similarly,
+managing marine foodwebs regime shifts require being able to intervene
+\~66% of the variables describing the individual shift; but when coupled
+it varies from as low as 53% with kelp transitions to as high as 72%
+with Arctic benthos borealisation. This is because sharing common
+variables on the minimum driving set reduces the proportion of nodes to
+control, while new feedbacks formed when coupling the network increases
+the feedback vertex set. The most common variables to manage coupled
+regime shifts are fertilisers use, sewage, fishing and soil erosion.
+Climate related variables are important but down the rank list, such as
+droughts, temperature, and precipitation. Many variables that have not
+been previously reported in similar studies about key drivers of regime
+shifts are reported here because they are part of the feedback vertex
+set, such as management of apex predators, zooplankton, or fish
+populations.
+
+```{=tex}
+\begin{figure*}[ht]
+\centering
+\includegraphics[width = 7in, height = 3in]{fig2_combined-control}
+\caption{\textbf{Controlling coupled regime shifts} }
+\label{fig:coup}
+\end{figure*}
+```
+These results suggests that network structure can have implications for
+management. If two regime shifts are solely coupled by sharing drivers,
+then controlling the common drivers will help the ideal manager to
+tackle both regime shift problems. But if the coupling of regime shifts
+gives rise to new feedbacks, the minimum number of processes that need
+to be controlled increases, making more difficult to manage the coupled
+system than the independent ones. To test that intuition we developed
+simple toy models of resource and pollutant systems where we varied
+network structure. The models are not as complex as the causal graphs
+previously studied, but they still capture the essential dynamics. Both
+type of systems in isolation can be controlled by one parameter, the
+addition or removal of pollutants $u_i$, and the availability of refuges
+from predators $c_i$ respectively. Thus when coupled, any gains or
+losses on the ability to manage the regime shifts is due to network
+structure alone (the coupling matrix $A_{i,j}$).
 
 # Discussion
 
 # Conclusion
 
-[400w]
+\[400w\]
 
 # Acknowledgements
 

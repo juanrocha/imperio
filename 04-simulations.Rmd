@@ -1,0 +1,88 @@
+---
+title: "Structural controllability of regime shifts"
+author: Juan Rocha
+output:
+  html_notebook:
+    toc: yes
+    toc_float: yes
+    highlight: tango
+    code_folding: hide
+    df_print: paged
+    theme: 
+      bootswatch: cosmo
+      code_font:
+        google: Fira Code
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Simulations
+
+- Create random networks (N<100) coupled with dynamical systems: do I use random ER, small world and scale free as templates?. Start with ER and a couple of densities. 
+- Pre-compute the feedback vertex set, minimum driving set, and combined control set. Get the var names as well as the number and proportion of nodes. 
+- Start simulation with systems in undesired regime. Try to recover by increasingly adding numbers of controlled nodes at random.
+- Then do the same but with the nodes from the control set. 
+- Sync actions vs async?
+- Sensitivity analysis [grid]: network density, coupling strength, network type,
+
+## Networks setting
+
+```{r message=FALSE, warning=FALSE}
+set.seed(12345)
+library(tidyverse)
+library(igraph)
+library(reticulate)
+
+# use_python(python = "/Users/juanrocha/opt/anaconda3/bin/python3.9")
+# #use_condaenv()
+# py_config()
+# 
+# py_install("igraph") # only do it once or if OS / python updated
+# import("igraph")
+```
+
+```{r}
+n <- 30 # number of nodes
+nn <- rep(30, n) # number of graphs
+# the graph needs to be converted to edge list
+G <- map(nn, ~sample_gnp(n=nn, p = 0.05, directed = TRUE)) 
+# for consistency with previous notebooks, G is the network, g is the edgelist
+g <- map(G, function(x){
+    x |> as_edgelist() |> as.data.frame() |> rename(tail = V1, head = V2)
+})  
+
+#base::plot(g)
+
+```
+
+```{r}
+source_python("fas.py") 
+g.py <- map(g, r_to_py) # remember this expects a data.frame, not a tibble nor matrix
+FAS <- map(g.py, feedback_set)
+# Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
+as_edgelist(G[[1]])[FAS[[1]]+1, 1]
+
+fvs_ls <- list() # extract the feedback vertex set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fvs_ls[[i]] <- NA,
+            fvs_ls[[i]] <- unique(as_edgelist(G[[i]])[FAS[[i]]+1, 1])
+           )
+}
+```
+
+Because networks are random, they could lack cycles. Option 1: keep them in the experiment. Option 2: draw a new graph until it has cycles. I like option 1, it supports the idea that network structure matters, not just if they are connected, of if there are connections, but the geometrical patterns change controllability if feedbacks exist. Everything else equal, they have the same number of nodes and the same probability of links.
+
+```{r}
+# remove vertices of the FVS
+dags <- list()
+for (i in seq_along(G)){
+    ifelse(is.dag(G[[i]]), 
+           dags[[i]] <- G[[i]], 
+           dags[[i]] <-  delete_vertices(graph = G[[i]], v = fvs_ls[[i]])
+           )
+}
+
+map2(G, fvs_ls,function(x,y) ifelse(is.dag(x), x, delete_vertices(x, y)))
+```
+
