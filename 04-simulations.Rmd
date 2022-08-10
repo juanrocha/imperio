@@ -75,14 +75,222 @@ Because networks are random, they could lack cycles. Option 1: keep them in the 
 
 ```{r}
 # remove vertices of the FVS
+idx <- lapply(G, is.dag) |> unlist()
 dags <- list()
-for (i in seq_along(G)){
-    ifelse(is.dag(G[[i]]), 
-           dags[[i]] <- G[[i]], 
-           dags[[i]] <-  delete_vertices(graph = G[[i]], v = fvs_ls[[i]])
-           )
+## keep dags as is
+dags[idx] <- G[idx]
+## delete vertices of DCGs
+dags[!idx] <- map2(G[!idx], fvs_ls[!idx], function(x,y) delete_vertices(x,as.character(y)))
+
+## test
+all(lapply(dags, is.dag))
+```
+
+Matching:
+
+```{r warning=FALSE}
+fas_ls <- list() # extract the feedback arc set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fas_ls[[i]] <- NA,
+           # the following line recovers the index of the link, not the link itself.
+            fas_ls[[i]] <- FAS[[i]] + 1)
 }
 
-map2(G, fvs_ls,function(x,y) ifelse(is.dag(x), x, delete_vertices(x, y)))
+## Delete the FAS
+dags_all <- list()
+dags_all[idx] <- G[idx]
+## delete edges of DCGs
+dags_all[!idx] <- map2(G[!idx], fas_ls[!idx], function(x,y) delete_edges(x,y))
+
+## test
+all(lapply(dags_all, is.dag))
+
 ```
+ 
+```{r}
+bip_all <-  dags_all |> 
+    map(as_edgelist, names = TRUE) |> 
+    map(as.data.frame) |> 
+    map(function(x) {mutate(x, V1 = as.character(V1), V2 = as.character(V2))}) |> 
+    map(function(x) mutate(x, V1 = str_c(V1, "_t"), V2 = str_c(V2, "_h"))) |> 
+    map(graph_from_data_frame, directed = TRUE) %>% 
+    map(., function(x) {
+        V(x)$type <- V(x) %>%
+            names() %>% str_detect("_t")
+        return(x)
+    })
+
+matching <-  bip_all %>% 
+    map(max_bipartite_match)
+
+# minimum driving set of acyclic graphs
+mds <-  map(matching, function(x) names(x$matching[is.na(x$matching)])) |> 
+    map(function(x) str_remove_all(x, pattern = "_t|_h")) |> 
+    map(unique) |> 
+    map(as.numeric)
+
+df_comb <- tibble(
+    mds = mds,
+    fvs = fvs_ls
+) |> mutate(id = row_number())
+
+df_comb |> 
+    unnest(cols = mds) |> 
+    unnest(cols = fvs) |> 
+    pivot_longer(cols = c("mds", "fvs"), names_to = "type", values_to = "nodes") |> 
+    group_by(id) |> 
+    unique() |> select(-type) |> 
+    unique() |> 
+    summarize(n= n(), prop = n/30) |> 
+    add_column(dag = map_lgl(G, is.dag)) |> 
+    ggplot(aes(dag, prop)) + geom_boxplot()
+```
+ 
+Cool first result!
+
+## Modeling setting
+
+Should I use the normalized form of the models, or the one state on the paper draft?
+
+### Pollution model
+
+The equation:
+$$\forall{i} \in\{1,...,n\}; \frac{dx_i}{dt} = u_i - s_ix_i + v_i \frac{x_{i}^{\alpha_{i}}}{z_i^{\alpha_{i}} + x_{i}^{\alpha_{i}}} 
+- \sum_{j \neq i} A_{ij} (\delta_{ij}x_i - \delta_{ji}x_j)$$
+
+```{r}
+## the model:
+library(deSolve)
+# This event function avoids negative levels of pollutants
+# Add this directly above your call to ode()
+posfun <- function(t, y, parms){
+  with(as.list(y), {
+    y[which(y<0)] <- 0
+    return(y)
+  })
+}
+
+## Pollution model:
+pollution <- function(t, y, params){
+  with(as.list(c(y, params)), {
+    x = y
+    pollutant <- u - s*x + v * (x^alpha/(z^alpha + x^alpha))
+    outflow <-  (A_ij * delta_ij) %*% x
+    inflow <-  t(A_ij * delta_ij) %*% x
+
+    dy <- pollutant + (inflow - outflow)
+    
+    return(list(c(dy)))
+  })
+}
+
+## set up flux matrix
+n <- 30
+delta_ij <- matrix(runif(n^2, min = 0.02, max = 0.05), ncol = n)
+#delta_ij <- matrix(rep(0,n^2), ncol = n) # turn off difussion terms
+diag(delta_ij) <- 0
+A_ij <- G[[1]] |> as_adjacency_matrix() |> as.matrix()
+#diag(A_ij) <- 0
+## Parameters: use rep() if the value is the same, or runif() ir meant to be different across systems
+params <- list(
+    u = rep(1.5, n),              # pollution load from humans
+    s = rep(0.4, n),              # internal loss rate (sedimentation)
+    v = rep(2, n),                # max level of internal nutrient release
+    z = runif(n, min = 2, max = 8),        # threshold
+    alpha = 4 ,                   # sharpness of the shift
+    delta_ij = delta_ij,          # matrix of difussion terms
+    A_ij = A_ij                   # adjacency matrix
+)
+
+## set up time steps
+times <- seq(from = 0, to = 100, by = 0.01)
+
+## initial conditions
+yini <- rep(10,n) #runif(n, 5, 20)
+
+## run the model
+print(system.time(
+    out <- ode(
+      y = yini, times = times,  func = pollution, parms = params,
+      method = "bdf" , ## see help("ode") for more methods
+      events=list(func = posfun, time = times)
+    )
+))
+
+```
+
+```{r warning = FALSE, message = FALSE}
+df_sim <- out %>% as_tibble() %>%
+  gather(key = "lakes", value = "pollutants", 2:last_col())
+
+g2 <- df_sim %>%
+  ggplot(aes(x=time, y=pollutants)) +
+  geom_line(aes(color = lakes), size = 0.25, show.legend = T) + 
+  labs(tag = "B") + ylim(c(0,20)) +
+  theme_light()
+
+g2
+```
+
+Need to create a function to reduce the level of nutrients over time. Then it needs to do it only for controlling nodes at the same time. Then asynchronously.
+
+```{r}
+# From Soetaert book, p57, a data frame is used to approximate the value of the external variable of interest. Then a function is created that interpolate the value of the variable on simulation time to adjust according to the time step of simulation
+
+nutrients_df <- tibble(
+    time = seq(0,100,1),
+    nutrients = seq(0, 10, 0.1)
+)
+
+u_pollution <- approxfun(nutrients_df)
+
+#test
+# u_pollution(seq(1,5, by = 0.5))
+
+## Pollution model:
+pollution <- function(t, y, params){
+  with(as.list(c(y, params)), {
+    x = y
+    # the amount of pollutants added by humans, as of now, all systems (lakes) get
+    # pollutants at the same rate simultanously
+    u <- u_pollution(t)
+    pollutant <- u - s*x + v * (x^alpha/(z^alpha + x^alpha))
+    outflow <-  (A_ij * delta_ij) %*% x
+    inflow <-  t(A_ij * delta_ij) %*% x
+
+    dy <- pollutant + (inflow - outflow)
+    
+    return(list(c(dy)))
+  })
+}
+# delete u from the parameters list since it is calculated at runtime
+params2 <- params[-1]
+## same time and initial conditions as before
+## Run the model
+print(system.time(
+    out <- ode(
+      y = yini, times = times,  func = pollution, parms = params2,
+      method = "bdf" , ## see help("ode") for more methods
+      events=list(func = posfun, time = times)
+    )
+))
+
+```
+
+```{r warning = FALSE, message = FALSE}
+df_sim <- out %>% as_tibble() %>%
+  gather(key = "lakes", value = "pollutants", 2:last_col())
+
+g2 <- df_sim %>%
+  ggplot(aes(x=time, y=pollutants)) +
+  geom_line(aes(color = lakes), size = 0.25, show.legend = T) + 
+  #labs(tag = "B") + ylim(c(0,20)) +
+  theme_light()
+
+g2
+```
+
+
+
 
