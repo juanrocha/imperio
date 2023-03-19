@@ -34,7 +34,7 @@ n <- 1 # number of nodes
 delta_ij <- 0.02 # no matrix, only one system
 A_ij <- 1 # no matrix, only one system
 u = rep(0.5, n)              # pollution load from humans
-s = rep(2.2, n)              # internal loss rate (sedimentation)
+s = rep(2.5, n)              # internal loss rate (sedimentation)
 v = rep(10, n)                # max level of internal nutrient release
 z = 2.2       # threshold
 alpha = 4                    # sharpness of the shift

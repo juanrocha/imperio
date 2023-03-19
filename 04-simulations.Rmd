@@ -25,6 +25,12 @@ editor_options:
 - Sync actions vs async?
 - Sensitivity analysis [grid]: network density, coupling strength, network type,
 
+J230301: Tunable parameters
+
+- Network size: 25, 50, 75, 100
+- Diffussion term / strength: 
+- Network topology: random, small-world, scale-free
+
 ## Networks setting
 
 ```{r message=FALSE, warning=FALSE}
@@ -33,17 +39,21 @@ library(tidyverse)
 library(igraph)
 library(reticulate)
 
-# use_python(python = "/Users/juanrocha/opt/anaconda3/bin/python3.9")
+#use_python(python = "/Users/juanrocha/opt/anaconda3/bin/python3.9")
 # #use_condaenv()
 # py_config()
 # 
 # py_install("igraph") # only do it once or if OS / python updated
 # import("igraph")
+# 
+# J230303: I had problems with R crashing because it could not load dyn libraries of python.
+# it was solvved by updating all python packages
+# In terminal: pip-review --local --auto (from https://stackoverflow.com/questions/2720014/how-to-upgrade-all-python-packages-with-pip)
 ```
 
 ```{r}
 n <- 30 # number of nodes
-nn <- rep(30, n) # number of graphs
+nn <- rep(n, 100) # number of graphs
 # the graph needs to be converted to edge list
 G <- map(nn, ~sample_gnp(n=nn, p = 0.05, directed = TRUE)) 
 # for consistency with previous notebooks, G is the network, g is the edgelist
@@ -54,6 +64,8 @@ g <- map(G, function(x){
 #base::plot(g)
 
 ```
+
+
 
 ```{r}
 source_python("fas.py") 
@@ -144,7 +156,7 @@ df_comb |>
     unique() |> 
     summarize(n= n(), prop = n/30) |> 
     add_column(dag = map_lgl(G, is.dag)) |> 
-    ggplot(aes(dag, prop)) + geom_boxplot()
+    ggplot(aes(dag, prop)) + geom_boxplot() + geom_jitter()
 ```
  
 Cool first result!
@@ -153,9 +165,14 @@ Cool first result!
 
 Should I use the normalized form of the models, or the one state on the paper draft?
 
+- Plot potential and make sure the model is set with bistability
+- Test with normalized model.
+- Repeat with resource model
+
 ### Pollution model
 
 The equation:
+
 $$\forall{i} \in\{1,...,n\}; \frac{dx_i}{dt} = u_i - s_ix_i + v_i \frac{x_{i}^{\alpha_{i}}}{z_i^{\alpha_{i}} + x_{i}^{\alpha_{i}}} 
 - \sum_{j \neq i} A_{ij} (\delta_{ij}x_i - \delta_{ji}x_j)$$
 
@@ -179,7 +196,7 @@ pollution <- function(t, y, params){
     outflow <-  (A_ij * delta_ij) %*% x
     inflow <-  t(A_ij * delta_ij) %*% x
 
-    dy <- pollutant + (inflow - outflow)
+    dy <- pollutant + (inflow - outflow) # equivalent to - (outflow - inflow)
     
     return(list(c(dy)))
   })
@@ -187,17 +204,17 @@ pollution <- function(t, y, params){
 
 ## set up flux matrix
 n <- 30
-delta_ij <- matrix(runif(n^2, min = 0.02, max = 0.05), ncol = n)
+delta_ij <- matrix(runif(n^2, min = 0.2, max = 0.5), ncol = n)
 #delta_ij <- matrix(rep(0,n^2), ncol = n) # turn off difussion terms
 diag(delta_ij) <- 0
 A_ij <- G[[1]] |> as_adjacency_matrix() |> as.matrix()
 #diag(A_ij) <- 0
 ## Parameters: use rep() if the value is the same, or runif() ir meant to be different across systems
 params <- list(
-    u = rep(1.5, n),              # pollution load from humans
-    s = rep(0.4, n),              # internal loss rate (sedimentation)
-    v = rep(2, n),                # max level of internal nutrient release
-    z = runif(n, min = 2, max = 8),        # threshold
+    u = rep(0.5, n),              # pollution load from humans
+    s = rep(2.2, n),              # internal loss rate (sedimentation)
+    v = rep(10, n),                # max level of internal nutrient release
+    z = rep(2.2, n),#runif(n, min = 2, max = 8),# threshold
     alpha = 4 ,                   # sharpness of the shift
     delta_ij = delta_ij,          # matrix of difussion terms
     A_ij = A_ij                   # adjacency matrix
@@ -207,7 +224,7 @@ params <- list(
 times <- seq(from = 0, to = 100, by = 0.01)
 
 ## initial conditions
-yini <- rep(10,n) #runif(n, 5, 20)
+yini <- runif(n, 0, 10)
 
 ## run the model
 print(system.time(
@@ -224,13 +241,12 @@ print(system.time(
 df_sim <- out %>% as_tibble() %>%
   gather(key = "lakes", value = "pollutants", 2:last_col())
 
-g2 <- df_sim %>%
+df_sim %>%
   ggplot(aes(x=time, y=pollutants)) +
   geom_line(aes(color = lakes), size = 0.25, show.legend = T) + 
   labs(tag = "B") + ylim(c(0,20)) +
   theme_light()
 
-g2
 ```
 
 Need to create a function to reduce the level of nutrients over time. Then it needs to do it only for controlling nodes at the same time. Then asynchronously.
@@ -240,8 +256,12 @@ Need to create a function to reduce the level of nutrients over time. Then it ne
 
 nutrients_df <- tibble(
     time = seq(0,100,1),
-    nutrients = seq(0, 10, 0.1)
+    nutrients = seq(from = 5,to = -5, by = -0.1)
 )
+
+## set up time steps: longer sims
+times <- seq(from = 0, to = 100, by = 0.01)
+
 
 u_pollution <- approxfun(nutrients_df)
 
@@ -266,6 +286,7 @@ pollution <- function(t, y, params){
 }
 # delete u from the parameters list since it is calculated at runtime
 params2 <- params[-1]
+params2$s <- rep(2.5,n)
 ## same time and initial conditions as before
 ## Run the model
 print(system.time(
@@ -282,15 +303,236 @@ print(system.time(
 df_sim <- out %>% as_tibble() %>%
   gather(key = "lakes", value = "pollutants", 2:last_col())
 
-g2 <- df_sim %>%
+df_sim %>%
   ggplot(aes(x=time, y=pollutants)) +
   geom_line(aes(color = lakes), size = 0.25, show.legend = T) + 
   #labs(tag = "B") + ylim(c(0,20)) +
   theme_light()
 
-g2
+```
+
+The management option allows to extract pollutants (negative values of `u`). That way, all lakes can be recovered. If one only reduces `u` to zero, most lakes do not flip back. Another option is to run the simulation longer time, but it also takes longer to compute (even with 100 time steps and non-negative u values).
+
+Can the controlling modes drive the system to the non-euthrophic state?
+
+```{r}
+controlling_set <- c(mds[[1]], fvs_ls[[1]])
+
+nutrients_df <- tibble(
+    time = seq(0,200,1),
+    nutrients = c(seq(from = 5,to = -5, by = -0.05)) #, rep(0,100)
+)
+
+## set up time steps: longer sims
+times <- seq(from = 0, to = 200, by = 0.01)
+
+
+u_pollution <- approxfun(nutrients_df)
+
+## Pollution model:
+pollution <- function(t, y, params){
+  with(as.list(c(y, params)), {
+    x = y
+    ## If controlling node use u_pollution, else a constant
+    u <- ifelse(1:n %in% controlling_set, u_pollution(t), 0.5)
+    pollutant <- u - s*x + v * (x^alpha/(z^alpha + x^alpha))
+    outflow <-  (A_ij * delta_ij) %*% x
+    inflow <-  t(A_ij * delta_ij) %*% x
+
+    dy <- pollutant + (inflow - outflow)
+    
+    return(list(c(dy)))
+  })
+}
+
+print(system.time(
+    out <- ode(
+      y = yini, times = times,  func = pollution, parms = params2,
+      method = "daspk",  ## see help("ode") for more methods
+      events=list(func = posfun, time = times)
+    )
+))
+# 130s ~ >2min, out 4.7MB
+```
+
+Over 2mins per network is too much, why does it take time to converge?
+
+```{r message=FALSE, warning=FALSE}
+df_sim <- out %>% as_tibble() %>%
+  gather(key = "lakes", value = "pollutants", 2:last_col())
+
+p <- df_sim %>%
+  ggplot(aes(x=time, y=pollutants)) +
+  geom_line(aes(color = lakes), size = 0.25, show.legend = T) + 
+  #labs(tag = "B") + ylim(c(0,20)) +
+  theme_light()  
+
+plotly::ggplotly(p) # lakes 4, 10 and 18
+
+```
+
+Not working. I'm afraid the diffusion term is not working, or it changes link direction in which case the controllability change over time. Another possibility is that the connections are too weak, reducing too little nutrients with respect to the main dynamics. How does one tune that systematically?
+
+Update J220812: increasing the diffusion term delta by one order of magnitude (stronger connections) does shift most of the X systems to the clear state. Activating the `postfun` function to avoid non-negative values increases substantially computation time. The best integrator so far is the "bdf" method. "daspk" is offered as an alternative for very stiff problems but it takes 3xtime to run. Results are identical though.
+
+
+```{r}
+igraph::plot.igraph(G[[1]])
+```
+
+J230317: The systems that do not flip back are terminal nodes generally at the end of pathways, they receive nutrients but do not have outflow. However, it does happen for intermediate nodes occasionally. 
+
+### Experiment
+
+First use structural controllability to figure out sensible choices of network density. The intuition is that too high densities will in any case require controlling the full network.
+
+
+```{r}
+dens <- seq(from=0.1,to= 1, by= 0.05)
+dens <- rep(dens,  each = 100) 
+
+
+n <- 30 # number of nodes
+#nn <- rep(100, length(dens)) # number of graphs is 100
+# the graph needs to be converted to edge list
+ER <- map(dens, ~sample_gnp(n=30, p = dens, directed = TRUE)) # erdos-reny
+#PA <- map(dens, ~sample_pa(n=100, p = dens, directed = TRUE)) # preferential attachment
+#SW <- map(dens, ~sample_smallworld(n=100, p = dens, directed = TRUE)) # small-world are undirected by definition, doesn't work.
+
+# for consistency with previous notebooks, G is the network, g is the edgelist
+g <- map(ER, function(x){
+    x |> as_edgelist() |> as.data.frame() |> rename(tail = V1, head = V2)
+})  
+
 ```
 
 
+```{r}
+source_python("fas.py") 
+g.py <- map(g, r_to_py) # remember this expects a data.frame, not a tibble nor matrix
+FAS <- map(g.py, feedback_set)
+# Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
+as_edgelist(ER[[1]])[FAS[[1]]+1, 1]
 
+fvs_ls <- list() # extract the feedback vertex set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fvs_ls[[i]] <- NA,
+            fvs_ls[[i]] <- unique(as_edgelist(ER[[i]])[FAS[[i]]+1, 1])
+           )
+}
+```
+
+
+```{r}
+# remove vertices of the FVS
+idx <- lapply(ER, is.dag) |> unlist()
+dags <- list()
+## keep dags as is
+dags[idx] <- ER[idx]
+## delete vertices of DCGs
+dags[!idx] <- map2(ER[!idx], fvs_ls[!idx], function(x,y) delete_vertices(x,as.character(y)))
+
+## test
+all(lapply(dags, is.dag))
+```
+
+Matching:
+
+```{r warning=FALSE}
+fas_ls <- list() # extract the feedback arc set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fas_ls[[i]] <- NA,
+           # the following line recovers the index of the link, not the link itself.
+            fas_ls[[i]] <- FAS[[i]] + 1)
+}
+
+## Delete the FAS
+dags_all <- list()
+dags_all[idx] <- G[idx]
+## delete edges of DCGs
+dags_all[!idx] <- map2(ER[!idx], fas_ls[!idx], function(x,y) delete_edges(x,y))
+
+## test
+all(lapply(dags_all, is.dag))
+
+```
+ 
+```{r}
+bip_all <-  dags_all |> 
+    map(as_edgelist, names = TRUE) |> 
+    map(as.data.frame) |> 
+    map(function(x) {mutate(x, V1 = as.character(V1), V2 = as.character(V2))}) |> 
+    map(function(x) mutate(x, V1 = str_c(V1, "_t"), V2 = str_c(V2, "_h"))) |> 
+    map(graph_from_data_frame, directed = TRUE) %>% 
+    map(., function(x) {
+        V(x)$type <- V(x) %>%
+            names() %>% str_detect("_t")
+        return(x)
+    })
+
+matching <-  bip_all %>% 
+    map(max_bipartite_match)
+
+# minimum driving set of acyclic graphs
+mds <-  map(matching, function(x) names(x$matching[is.na(x$matching)])) |> 
+    map(function(x) str_remove_all(x, pattern = "_t|_h")) |> 
+    map(unique) |> 
+    map(as.numeric)
+
+df_comb <- tibble(
+    mds = mds,
+    fvs = fvs_ls,
+    dens = dens,
+    dag = map_lgl(ER, is.dag)  
+) |> mutate(id = row_number())
+
+df_comb |> 
+    unnest(cols = mds) |> 
+    unnest(cols = fvs) |> 
+    pivot_longer(cols = c("mds", "fvs"), names_to = "type", values_to = "nodes") |> 
+    group_by(id,dens) |> 
+    unique() |> select(-type) |> 
+    unique() |> 
+    summarize(n= n(), prop = n/30) |> #pull(prop) |> range()
+    ggplot(aes(dens, prop)) + geom_point(alpha = 0.4) + geom_smooth() +
+    #geom_density2d() +
+    labs(x = "Density", y = "Controllability", 
+         title = "Proportion of nodes in random E-R networks") +
+    theme_light(base_size = 8)
+
+# ggsave(
+#     filename = "density-control_ER.png", path = "figures/", dpi = 400,
+#     plot = last_plot(), width = 3, height = 2, device = "png", bg = "white"
+# )
+
+df_comb
+```
+ 
+Network structure matters a lot then. No matter the density of connections, the proportions of nodes to be controlled spans all (0.23:0.76)
+
+
+
+```{r}
+## A more rigorous exploration of the parameter space
+## Number of nodes = 25, 50, 75, 100
+## Class: Erdos-Renyi, Barabasi-Albert, Watts-Strogatz
+## Density (p of link): 0.05, 0.1, 0.3, 0.5 # we do not expect super dense cascading effects
+## Coupling strength delta_ij: low (0.01:0.05), high (0.25:0.5)
+## Synchrony: dealt in simmulation: Y/N
+
+
+n_size = c(25, 50, 75, 100) |> as_factor()
+class = c("ER", "PA", "SW") |> as_factor() # PA: preferential attachment, SW small world
+dens = c(0.05, 0.1, 0.3, 0.5) |> as_factor()
+delta = c("low", "high") |> as_factor()
+
+exp_design <- tibble(
+    treatment = interaction(n_size, class, dens, delta, sep = "_") |> levels()
+) |> 
+    separate(treatment, into = c("n_size", "class", "dens", "delta"), sep = "_")
+
+exp_design
+```
 
