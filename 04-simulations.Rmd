@@ -353,9 +353,10 @@ print(system.time(
     )
 ))
 # 130s ~ >2min, out 4.7MB
+# >9min with "daspk"
 ```
 
-Over 2mins per network is too much, why does it take time to converge?
+Over 9mins per network is too much, why does it take time to converge?
 
 ```{r message=FALSE, warning=FALSE}
 df_sim <- out %>% as_tibble() %>%
@@ -382,7 +383,7 @@ igraph::plot.igraph(G[[1]])
 
 J230317: The systems that do not flip back are terminal nodes generally at the end of pathways, they receive nutrients but do not have outflow. However, it does happen for intermediate nodes occasionally. 
 
-### Experiment
+### Density experiment
 
 First use structural controllability to figure out sensible choices of network density. The intuition is that too high densities will in any case require controlling the full network.
 
@@ -512,7 +513,35 @@ df_comb
  
 Network structure matters a lot then. No matter the density of connections, the proportions of nodes to be controlled spans all (0.23:0.76)
 
+Test if you can get small-world directed networks
 
+```{r}
+library(sna)
+library(intergraph)
+t <- sample_smallworld(1, 20, 2, 0.5, loops = FALSE, multiple = FALSE) ## I cannot get
+# directed graphs with igraph... work around with sna package by rewiring random graphs.
+## The sna option can do it by rewiring existing graphs
+t2 <- sna::rewire.ws(g = G[[1]] |> intergraph::asNetwork(), p= 0.5, return.as.edgelist = TRUE)
+network(t2[[1]], matrix.type = "edgelist") |> intergraph::asIgraph()
+
+## create a function:
+sample_ws <- function(n, p){
+    require(sna)
+    require(igraph)
+    require(intergraph)
+    
+    x <- sample_gnp(n= n, p = p, directed = TRUE) |> 
+        intergraph::asNetwork() |>
+        sna::rewire.ws(p = 0.5, return.as.edgelist = TRUE) 
+    x <- network(x[[1]], matrix.type = "edgelist") |>
+        intergraph::asIgraph()
+    return(x)
+}
+
+sample_ws(n = 30, p = 0.2)  # works
+```
+
+### Experimental setting
 
 ```{r}
 ## A more rigorous exploration of the parameter space
@@ -524,15 +553,257 @@ Network structure matters a lot then. No matter the density of connections, the 
 
 
 n_size = c(25, 50, 75, 100) |> as_factor()
-class = c("ER", "PA", "SW") |> as_factor() # PA: preferential attachment, SW small world
+class = c("sample_gnp", "sample_pa", "sample_ws") |> as_factor() # PA: preferential attachment, SW small world
 dens = c(0.05, 0.1, 0.3, 0.5) |> as_factor()
 delta = c("low", "high") |> as_factor()
 
 exp_design <- tibble(
-    treatment = interaction(n_size, class, dens, delta, sep = "_") |> levels()
+    treatment = interaction(n_size, class, dens, delta, sep = "-") |> levels()
 ) |> 
-    separate(treatment, into = c("n_size", "class", "dens", "delta"), sep = "_")
+    separate(treatment, into = c("n_size", "class", "dens", "delta"), sep = "-")
+
+exp_design <- exp_design |> 
+    mutate(n_size = as.numeric(n_size), 
+           dens = as.numeric(dens))
+
+exp_design
+
+```
+
+Create the networks
+
+```{r}
+exp_design <- exp_design |> 
+    mutate(dens = case_when(class == "sample_pa" ~  dens + 1,
+                            TRUE ~ dens)) |> 
+    rowwise() |> 
+    mutate(params = list(list(n=n_size, p = dens)))
+
+
+exp_design$params[exp_design$class == "sample_gnp"] <- map(
+    exp_design$params[exp_design$class == "sample_gnp"],
+    .f = function(x) {
+        x$directed <- TRUE 
+        return(x)
+        }
+)
+
+
+# working!
+nets <- invoke_map(
+    .f = exp_design$class,
+    .x = exp_design$params
+)
+
+nets |> length()
+```
+
+```{r}
+# for consistency with previous notebooks, G is the network, g is the edgelist
+g <- map(nets, function(x){
+    x |> as_edgelist() |> as.data.frame() |> rename(tail = V1, head = V2)
+})  
+```
+
+
+```{r}
+#source_python("fas.py") 
+g.py <- map(g, r_to_py) # remember this expects a data.frame, not a tibble nor matrix
+FAS <- map(g.py, feedback_set)
+# Here I need fas+1 because of python indexing, and the 1rst column because it's the source of the link. According to Zhou 2016 FVS and FAS problems are equivalent. My interpretation is that solving the FAS problem gives the origin vertex of the FVS problem.
+as_edgelist(nets[[1]])[FAS[[1]]+1, 1]
+
+fvs_ls <- list() # extract the feedback vertex set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fvs_ls[[i]] <- NA,
+            fvs_ls[[i]] <- unique(as_edgelist(nets[[i]])[FAS[[i]]+1, 1])
+           )
+}
+```
+
+
+```{r warning = FALSE}
+# remove vertices of the FVS
+idx <- lapply(nets, is.dag) |> unlist()
+dags <- list()
+## keep dags as is
+dags[idx] <- nets[idx]
+## delete vertices of DCGs
+dags[!idx] <- map2(nets[!idx], fvs_ls[!idx], function(x,y) delete_vertices(x,as.character(y)))
+
+## test
+all(lapply(dags, is.dag))
+```
+
+Matching:
+
+```{r warning=FALSE}
+fas_ls <- list() # extract the feedback arc set as a list
+for (i in seq_along(FAS)){
+    ifelse(length(FAS[[i]]) == 0,
+            fas_ls[[i]] <- NA,
+           # the following line recovers the index of the link, not the link itself.
+            fas_ls[[i]] <- FAS[[i]] + 1)
+}
+
+## Delete the FAS
+dags_all <- list()
+dags_all[idx] <- nets[idx]
+## delete edges of DCGs
+dags_all[!idx] <- map2(nets[!idx], fas_ls[!idx], function(x,y) delete_edges(x,y))
+
+## test
+all(lapply(dags_all, is.dag))
+
+```
+ 
+```{r}
+bip_all <-  dags_all |> 
+    map(as_edgelist, names = TRUE) |> 
+    map(as.data.frame) |> 
+    map(function(x) {mutate(x, V1 = as.character(V1), V2 = as.character(V2))}) |> 
+    map(function(x) mutate(x, V1 = str_c(V1, "_t"), V2 = str_c(V2, "_h"))) |> 
+    map(graph_from_data_frame, directed = TRUE) %>% 
+    map(., function(x) {
+        V(x)$type <- V(x) %>%
+            names() %>% str_detect("_t")
+        return(x)
+    })
+
+matching <-  bip_all %>% 
+    map(max_bipartite_match)
+
+# minimum driving set of acyclic graphs
+mds <-  map(matching, function(x) names(x$matching[is.na(x$matching)])) |> 
+    map(function(x) str_remove_all(x, pattern = "_t|_h")) |> 
+    map(unique) |> 
+    map(as.numeric)
+
+exp_design <- exp_design |> 
+    ungroup() |> 
+    mutate(
+    mds = mds,
+    fvs = fvs_ls,
+    dag = map_lgl(nets, is.dag)  
+) |> mutate(id = row_number())
+
+exp_design |> 
+    unnest(cols = mds) |> 
+    unnest(cols = fvs) |> 
+    pivot_longer(cols = c("mds", "fvs"), names_to = "type", values_to = "nodes") |> 
+    group_by(id, dens, class) |> 
+    unique() |> select(-type) |> 
+    unique() |> 
+    summarize(n= n(), prop = n/n_size) |> unique() |> 
+    ggplot(aes(as_factor(dens), prop)) + geom_jitter() +
+    geom_boxplot() +
+    #geom_density2d() +
+    labs(x = "Density", y = "Controllability") +
+    facet_wrap(~class, scales = "free_x") +
+    theme_light(base_size = 8)
+
+# ggsave(
+#     filename = "density-control_ER.png", path = "figures/", dpi = 400,
+#     plot = last_plot(), width = 3, height = 2, device = "png", bg = "white"
+# )
 
 exp_design
 ```
 
+## Simulations
+
+
+```{r}
+library(tictoc)
+## the model:
+library(deSolve)
+# This event function avoids negative levels of pollutants
+# Add this directly above your call to ode()
+posfun <- function(t, y, parms){
+  with(as.list(y), {
+    y[which(y<0)] <- 0
+    return(y)
+  })
+}
+
+nutrients_df <- tibble(
+    time = seq(0,200,1),
+    nutrients = c(seq(from = 5,to = -5, by = -0.05)) #, rep(0,100)
+)
+
+u_pollution <- approxfun(nutrients_df)
+
+## Pollution model:
+pollution <- function(t, y, params,...){
+  with(as.list(c(y, params)), {
+    x = y
+    n = length(x) # capturing again n_size
+    ## If controlling node use u_pollution, else a constant
+    u <- ifelse(1:n %in% controlling_set, u_pollution(t), 0.5)
+    pollutant <- u - s*x + v * (x^alpha/(z^alpha + x^alpha))
+    outflow <-  (A_ij * delta_ij) %*% x
+    inflow <-  t(A_ij * delta_ij) %*% x
+
+    dy <- pollutant + (inflow - outflow)
+    
+    return(list(c(dy)))
+  })
+}
+
+delta_ij <- map2(exp_design$n_size, exp_design$delta, function(n_size, delta) {
+    ifelse(delta == "low",
+           m <- matrix(runif(n_size^2, min = 0.01, max = 0.05), ncol = n_size),
+           m <- matrix(runif(n_size^2, min = 0.25, max = 0.5), ncol = n_size))
+    return(m)
+})
+
+exp_design <- exp_design |> select(-params) |> 
+    mutate(net = nets) |> 
+    mutate(delta_ij = delta_ij) |> 
+    rowwise() |>
+    ## seting parameters now inside the dataframe
+    mutate(params = list(list(
+        s = rep(2.2, n_size),    # internal loss rate (sedimentation)
+        v = rep(10, n_size),     # max level of internal nutrient release
+        z = rep(2.2, n_size),    # threshold
+        alpha = 4,  # sharpness of the shift
+        delta_ij = delta_ij,
+        A_ij = net |> as_adjacency_matrix() |> as.matrix(),
+        # remove NAs, they come when fvs is empty (dags)
+        controlling_set = c(mds, fvs) |> na.omit() |> as.vector()
+    ))
+) |> ungroup()
+    
+exp_design <- exp_design |> 
+    rowwise() |> 
+    mutate(yini = list(runif(n_size, 5,10)))
+
+times <- seq(from = 0, to = 200, by = 0.01)
+
+# out <- list()
+# tic()
+# for (i in 1:5) {
+#     tic()
+#     out[[i]] <- ode(
+#         y = exp_design$yini[[i]], times = times, func = pollution,
+#         parms = exp_design$params[[i]],
+#         method = "bdf", events = list(func = posfun, time = times)
+#     )
+#     cat("Experiment", i, "took:\n")
+#     toc()
+# }
+# toc()
+## Total 25min for 5 models. For 96 models, ~ 8hrs, perhaps 1h in parallel.
+
+```
+
+Run the simulations outside `RStudio`, works better when computing in parallel.
+Take the previous chunk on a script `04_simulations.R` and make sure to save each
+output to an `rda` file. For small network the ouput is >4MB in memory.
+
+```{r}
+base::save(exp_design, file = "data_processed/pollution_exp_design.Rda")
+```
+
+One of the reasons why this notebook is so slow is because it loads Python libraries. You don't need them on if just running simulations, once all the controlling sets are calculated for all networks.

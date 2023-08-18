@@ -1,0 +1,12 @@
+---
+title: "Notes"
+author: "Juan Rocha"
+
+output: html_document
+---
+
+*J230818*
+
+- Simulations are up and running for pollution system with an experimental design
+with 96 different settings. But right now it only tests one net per setting,
+I need replicates to gain confidence on the stats.
