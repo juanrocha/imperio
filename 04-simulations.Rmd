@@ -34,11 +34,11 @@ J230301: Tunable parameters
 ## Networks setting
 
 ```{r message=FALSE, warning=FALSE}
-set.seed(12345)
+#set.seed(12345)
 library(tidyverse)
 library(igraph)
 library(reticulate)
-
+library(tictoc)
 #use_python(python = "/Users/juanrocha/opt/anaconda3/bin/python3.9")
 # #use_condaenv()
 # py_config()
@@ -588,13 +588,24 @@ exp_design$params[exp_design$class == "sample_gnp"] <- map(
         }
 )
 
+## Adding 100 replicates per experimental configuration
+replicates <- tibble(
+    exp_id = rep(1:nrow(exp_design), each = 100) ,
+    exp_rep = rep(1:100, times = nrow(exp_design))
+)
+
+## So the resulting dataset is 9600 settings instead of 96. There will be 100 networks per parameter setting configuration.
+exp_design <- exp_design |> 
+    add_column(exp_id = 1:nrow(exp_design)) |> 
+    full_join(replicates)
 
 # working!
+tic()
 nets <- invoke_map(
     .f = exp_design$class,
     .x = exp_design$params
 )
-
+toc() #198.702 sec
 nets |> length()
 ```
 
@@ -803,7 +814,7 @@ Take the previous chunk on a script `04_simulations.R` and make sure to save eac
 output to an `rda` file. For small network the ouput is >4MB in memory.
 
 ```{r}
-base::save(exp_design, file = "data_processed/pollution_exp_design.Rda")
+base::save(exp_design, file = "data_processed/230819_exp_design.Rda")
 ```
 
 One of the reasons why this notebook is so slow is because it loads Python libraries. You don't need them on if just running simulations, once all the controlling sets are calculated for all networks.

@@ -1,13 +1,19 @@
 library(tictoc)
 library(deSolve)
 library(tidyverse)
+library(foreach)
 library(doParallel)
+library(fs)
+library(here)
+library(furrr)
 
 # library(igraph)
 # library(intergraph)
+# if working outside RStudio, set working directory
+setwd("/Users/juanrocha/Documents/Projects/imperio")
 
-load("data_processed/pollution_exp_design.Rda")
-exp_design
+load("data_processed/230819_exp_design.Rda")
+exp_design 
 #### Pollution model ####
 
 # This event function avoids negative levels of pollutants
@@ -45,19 +51,31 @@ pollution <- function(t, y, params,...){
 
 times <- seq(from = 0, to = 200, by = 0.01)
 
-## run simulations and save results in parallel:
-registerDoParallel(cores = 8)
+## run simulations and save results in parallel: First option not working
+# Error in { : task 1 failed - "could not find function "tic""
+cl <- makeCluster(10)
+registerDoParallel(cl)
 
 tic()
-for (i in 1:nrow(exp_design)) {
-    tic()
-    out <- ode(
+foreach(i=206:nrow(exp_design)) %dopar% {
+    tictoc::tic()
+    out <- deSolve::ode(
         y = exp_design$yini[[i]], times = times, func = pollution,
         parms = exp_design$params[[i]],
         method = "bdf", events = list(func = posfun, time = times)
     )
-    save(out, file = paste0("simulations/pollution", exp_design$id[i], ".Rda"))
+    save(out,
+         file = paste0(
+             "simulations/pollution_expid", exp_design$exp_id[i], # experiment id (96 experiments)
+             "_rep", exp_design$exp_rep[i], "_file", # replication id (100 replicates)
+             exp_design$id[i], ".Rda")) # file id is the row number, so if missing i can find it quickly
     cat("Experiment", i, "took:\n")
-    toc()
+    tictoc::toc()
 }
 toc()
+
+
+stopCluster(cl)
+
+
+## Second option with furrr
