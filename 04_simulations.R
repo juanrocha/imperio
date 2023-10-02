@@ -57,7 +57,7 @@ cl <- makeCluster(10)
 registerDoParallel(cl)
 
 tic()
-foreach(i=206:nrow(exp_design)) %dopar% {
+foreach(i=4355:nrow(exp_design)) %dopar% {
     tictoc::tic()
     out <- deSolve::ode(
         y = exp_design$yini[[i]], times = times, func = pollution,
@@ -72,10 +72,12 @@ foreach(i=206:nrow(exp_design)) %dopar% {
     cat("Experiment", i, "took:\n")
     tictoc::toc()
 }
-toc()
+toc() # 505700.343 sec elapsed; 5.85 days for half batch
 
 
 stopCluster(cl)
 
 
 ## Second option with furrr
+
+

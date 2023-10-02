@@ -1,12 +1,11 @@
 ---
 title: "Structural controllability and management of cascading regime shifts"
 author: |
-    | \small Juan Rocha^1^, Anne-Sophie Crépin^2^
+    | \small Juan C. Rocha^1^, Anne-Sophie Crépin^2^
     | \small
-    | \small ^1^Stockholm Resilience Centre, Stockholm University, Kräftriket 2B, 10691 Stockholm
+    | \small ^1^Stockholm Resilience Centre, Stockholm University
     | \small ^2^Beijer Institute of Ecological Economics, The Royal Swedish Academy of Sciences
-abstract: |
-
+    
 bibliography: refs.bib
 csl: nature.csl
 output:
@@ -17,49 +16,35 @@ output:
     latex_engine: xelatex
 citecolor: blue
 documentclass: article
-font: Arial
+# font: Arial
 fontsize: 10pt
 linkcolor: blue
 urlcolor: blue
 header-includes:
-- \usepackage{dcolumn, rotating, longtable, lineno, float, fontspec, array, tabularx}
-- \setmainfont{Arial}
+
+- \usepackage{dcolumn, rotating, longtable, float, fontspec, array, tabularx, abstract}
+- \usepackage[switch, columnwise]{lineno}
+#- \setmainfont{Arial}
 - \linenumbers
-- \renewcommand{\abstractname}{}
+- \renewcommand{\abstractnamefont}{\normalfont\bfseries}
+- \renewcommand{\abstracttextfont}{\normalfont\small\itshape}
 - \graphicspath{{figures/}}
 - \usepackage[margin=2.5cm]{geometry}
+
 editor_options:
   markdown:
     wrap: 72
+
+classoption:
+- twocolumn
+
+abstract: "Abrupt transitions in ecosystems can be interconnected, raising challenges for science and management in identifying sufficient interventions to prevent them or recover from undesirable shifts. Here we use principles of network controllability to explore how difficult it is to manage coupled regime shifts. We find that coupled regime shifts are easier to manage when they share drivers, but can become harder to manage if new feedbacks are formed when coupled. Simulation experiments showed that both network structure and coupling strength matter in our ability to manage interconnected systems. This theoretical observations calls for an empirical assessment of cascading regime shifts in ecosystems and warns about our limited ability to control cascading effects."
 ---
 
 ```{r data, include=FALSE}
-library(tidyverse)
-library(here)
-
+# library(tidyverse)
+# library(here)
 ```
-
-Outline:
-
-1.  Intro 609/800w
-
--   Regime shifts challenging for management
--   RS can be interconnected
--   How can we identify leverage points, or enough intervention points,
-    to manage regime shifts?
--   Structural and dynamic controllability
-
-2.  Methods \>914/500w
-
--   Data: CLDs RSDB
--   Models: pollution
--   resource systems
--   Control metrics
-
-3.  Results 800w
-4.  Discussion 800w
-5.  Conclusion 300w
-
 # Introduction
 
 Regime shifts are large, abrupt and persistent changes in the function
@@ -71,14 +56,16 @@ They have been documented in a variety of social-ecological systems
 and function of ecosystems can diminish the benefits people get from
 nature such as food production, employment opportunities, climate
 regulation, or water purification [@Carpenter:2009jr]. For example,
-the North Atlantic cod collapse represented X M of economic loss and
-compromised XX jobs. The weakening or late arrival of the Indian summer
+the North Atlantic cod collapse represented millions of economic loss and
+compromised more than 35000 jobs in 400 coastal communities[@gien2000land].
+The weakening or late arrival of the Indian summer
 monsoon can compromise food production in one of the most densely
 populates regions of the world. How management strategies avoid regime
 shifts or recover natural ecosystems to desirable regimes are key
-research questions and an active area of research [].
+research questions and an active area of research.
 
-Regime shifts can be interconnected [@Rocha:2018gn]. The occurrence
+But one theoretical fact that complicates their study and management is
+that regime shifts can be interconnected [@Rocha:2018gn]. The occurrence
 of one can impact the likelihood of another through sequential tipping,
 like a domino effect [@Wunderling:fj; @Rocha:2018gn]; or through
 two-way interactions where new feedbacks can amplify or dampen the
@@ -103,13 +90,23 @@ coordinate for successful management of local resources; it also implies
 a tragedy of the commons with potential power asymmetries. Classical
 examples include transnational resource systems where pollution or
 exploitation of a resource in one side of the border impacts its quality
-on the other side, or downstream (e.g. see Young for rivers, Keys for
-moisture recycling). Second, and most importantly, connected regime
+on the other side, or downstream [@young2002institutional; @keys2018megacity].
+Second, and most importantly, connected regime
 shifts rises the challenge of identifying sufficient and appropriate
 points of intervention for managerial actions. In an interconnected
 world, how can we identify leverage points to manage regime shifts? Are
 there regime shifts -- or their interactions - that are harder to
 manage?
+
+
+```{=tex}
+\begin{figure*}[ht]
+\centering
+\includegraphics[width = 6.5in, height = 2.5in]{fig1_control-individua-rs}
+\caption{\textbf{Structural controllability of individual regime shifts} The number of nodes of the control set per regime shift (A), and their proportion with respect to the full causal network (B). Top controlling variables ranked by the number of regime shifts where they are part of the control set.}
+\label{fig:ind}
+\end{figure*}
+```
 
 Here we answer these questions in the light of controllability of
 complex systems. A system is controllable if one can drive it from any
@@ -171,6 +168,17 @@ can couple different types of regime shifts known as cascading effects
 [@Rocha:2018gn]. We then compare how structural controllability
 change if ecological regime shifts are interconnected.
 
+
+```{=tex}
+\begin{figure*}[ht]
+\centering
+\includegraphics[width = 6.5in, height = 2.5in]{fig2_combined-control}
+\caption{\textbf{Structural controllability of coupled regime shifts} The proportion of nodes that need to be controlled to manage individual regime shifts (A) compared against the number of nodes (B) and ratio of nodes (C) that one needs to control to manage coupled regime shifts. Top controlling nodes are ranked by the number of pair-wise compbinations where they appear on the control set (D). For a sample of 30 regime shifts, there are 900 pair-wise combinations or 870 combinations of non-identical regime shifts. Thus, for example, fertilizers use and sewage appear in more than 175 of these combinations.}
+\label{fig:coup}
+\end{figure*}
+```
+
+
 **Dynamic control on minimal models** To further test our intuitions, we
 compared the results from structural controllability with modeling
 experiments in simplified resource and pollutant models. We chose these
@@ -178,6 +186,7 @@ models because they are easier to parametrise that the qualitative
 networks offered by the database, yet they encapsulate well understood
 and common dynamics underlying many real world regime shifts. The
 pollution system is defined by:
+
 
 $$
 \frac{dx_i}{dt} = u_i-s_ix_i+v_i \frac{x_i^{\alpha_i}}{z_i^{\alpha_i}+x_i^{\alpha_i}}- \sum_{j\not=i}(\delta_{ij}x_i-\delta_{ji}x_j)A_{ij}
@@ -216,9 +225,27 @@ Here we concentrate our efforts in exploring numerical simulations on
 medium size interconnected systems ($N < 10^2$), with potentially
 multiple feedbacks. Analytical solutions for the low dimensional
 diffusion problem of our pollution and resource systems can be found in
-[@Crépin 2021]. The computer code used for our simulations as well as
+[@crepin2021]. For each of the dynamical systems (pollution, resource) we 
+generated networks varying its size ($N:\{25, 50, 75, 100\}$); the network generative
+process which could be random (Erdös-Rényi model), preferential attachment 
+(Barabási-Albert model), or small-world (Watts-Strogatz model); the network 
+density ($d:\{0.05, 0.1, 0.3, 0.5\}$); and the coupling strength ($\delta_{i,j}:\{low = 0.01:0.05, high = 0.25:0.5\}$). Thus, we have 96 different experimental conditions
+for which we generated 100 replicates resulting in 9600 simulation experiments for
+each dynamical system. Each model was run for 200 time steps and integration steps
+of 0.001 $dt$.
+
+For each experiment we identified the feedback vertex
+set and the minimum controlling set of the network. Then we manipulated the
+driver at run time to decrease nutrients in the pollution system
+($u$ decreased from 5 to -5 allowing for management that can extract nutrients
+from the system), or decrease harvest in the resource system ($c$ decreased
+from 10 to 0) on the controlling set only. We then assess if management on the
+control set successfully recover the networked systems, the proportion of nodes
+recovered, or time to recovery when comparing strong versus weak coupling ($\delta$).
+The computer code used for our simulations as well as
 the curated networks from the regime shifts database are available at:
 <https://github.com/juanrocha/imperio>
+
 
 # Results
 
@@ -227,7 +254,7 @@ targeting variables that have been coded as drivers in the regime shifts
 database. Drivers there are defined as variables outside feedbacks that
 influence the dynamics of the system, but that are not in turn
 influenced by the system itself [@Biggs:2018hx]; which inherits the
-logic first proposed by the Millennium Ecosystem Assessment [@MEA].
+logic first proposed by the Millennium Ecosystem Assessment [@MEA2005].
 As recent advances in network controllability show [@Liu:2015wl;
 @Zanudo:2017hw], to steer the system towards a desired state an ideal
 manager needs to intervene not only drivers but also some of the
@@ -245,14 +272,6 @@ zooplankton, meso predators, or top predators are often part of the
 feedback vertex set, while fertilizers use, sewage or soil erosion are
 always part of the minimum control set of the DAG.
 
-```{=tex}
-\begin{figure*}[ht]
-\centering
-\includegraphics[width = 7in, height = 3in]{fig1_control-individua-rs}
-\caption{\textbf{Controlling individual regime shifts} }
-\label{fig:ind}
-\end{figure*}
-```
 Coupled regime shifts are harder to manage because the ideal manager
 needs to intervene more variables. However, the number and proportion of
 nodes to be controlled varies depending of the coupling (Fig
@@ -270,21 +289,28 @@ variables on the minimum driving set reduces the proportion of nodes to
 control, while new feedbacks formed when coupling the network increases
 the feedback vertex set. The most common variables to manage coupled
 regime shifts are fertilisers use, sewage, fishing and soil erosion.
-Climate related variables are important but down the rank list, such as
+Climate related variables are important but down the rank in the list, such as
 droughts, temperature, and precipitation. Many variables that have not
 been previously reported in similar studies about key drivers of regime
 shifts are reported here because they are part of the feedback vertex
 set, such as management of apex predators, zooplankton, or fish
-populations.
+populations. This however aligns with management strategies that attempt
+to manipulate feedback strength to recover ecosystems from regime shifts,
+for example fish population manipulations to recover from eutrophication
+[@smith2009eutrophication].
+
+
 
 ```{=tex}
-\begin{figure*}[ht]
+\begin{figure}[ht]
 \centering
-\includegraphics[width = 7in, height = 3in]{fig2_combined-control}
-\caption{\textbf{Controlling coupled regime shifts} }
-\label{fig:coup}
-\end{figure*}
+\includegraphics[width = 3in, height = 4.5in]{fig3-pollution_results}
+\caption{\textbf{Pollution system simulations} The proportion of nodes recovered by network density for different types of network architecture and coupling strength (A). The proportion of nodes recovered that belongs to the control set (B), and the mean recovery time by proportion of nodes recovered (C). Boxplots and scaterplots summarize N = 9600 networks (100 replicates * 96 experimental settings).}
+\label{fig:pollution}
+\end{figure}
 ```
+
+
 These results suggests that network structure can have implications for
 management. If two regime shifts are solely coupled by sharing drivers,
 then controlling the common drivers will help the ideal manager to
@@ -301,18 +327,127 @@ from predators $c_i$ respectively. Thus when coupled, any gains or
 losses on the ability to manage the regime shifts is due to network
 structure alone (the coupling matrix $A_{i,j}$).
 
+```{=tex}
+\begin{figure}[ht]
+\centering
+\includegraphics[width = 3in, height = 4.5in]{fig4-resource_results}
+\caption{\textbf{Resource system simulations} The proportion of nodes recovered by network density for different types of network architecture and coupling strength (A). The proportion of nodes recovered that belongs to the control set (B), and the mean recovery time by proportion of nodes recovered (C). Boxplots and scaterplots summarize N = 9600 networks (100 replicates * 96 experimental settings).}
+\label{fig:resource}
+\end{figure}
+```
+
+
+In the pollution system, the higher the network density the higher the proportion
+of nodes recovered in our simulations (Fig \ref{fig:pollution}A). This effect is accentuated 
+when the coupling strength $\delta$ is high. However, the proportion of 
+nodes recovered that belong to the control set is higher when coupling
+strength is low (Fig \ref{fig:pollution}B) for all network types tested. This
+means that coupling strength increases the probability that a larger proportion
+of the system is recovered by managerial actions on the control set, but the 
+control set in turns becomes vulnerable through incoming connections that
+impedes complete recovery. We also observe that mean recovery time is on average
+faster with high coupling strength, but in networks whose generative 
+process is preferential attachment (scale-free like degree distributions) and 
+strong presence of dyadic acyclic graphs (DAG), sometimes recovery can be slower
+under high coupling (Fig \ref{fig:pollution}C). Regardless of network 
+architecture, the lower bound for proportion of nodes recovery is as low as 60% 
+for preferential attachment networks, and around 30% for random and small-world 
+networks under high coupling strength, and almost none for low coupling.
+
+We find contrasting results on the resource simulations. First, the proportion 
+of nodes recovered declines on average with increasing network density, although
+for the case of preferential attachment, all nodes were recovered regardless of
+network density on the low coupling strength scenario (Fig \ref{fig:resource}A). 
+Second, the proportion of nodes recovered that belong to the control set 
+increases with network density for the cases of random and small-world networks,
+but there are not differences between the high and low coupling strength 
+(Fig \ref{fig:resource}B). In the case of preferential attachment, the 
+proportion of recovered nodes that belong to the control set is higher in
+networks under the low coupling strength treatment, meaning that one needs 
+larger control sets. While most simulated systems under low coupling strength
+recovered by time step ~130, recovery time is much more varied in networks with
+high coupling streght (Fig \ref{fig:resource}C).
+
 # Discussion
+
+Our simulation results confirm that network structure matters when trying
+to manage coupled regime shifts. The type of network architecture (random,
+preferential attachment, small-world) changes the likelihood of recovering
+the full system, as well as the coupling strength between systems. Surprisingly,
+even under the same network configurations (N=9600) the type of dynamics played
+in the networks (pollutant versus resource equations) changed substantially
+the qualitative patterns identified for the full ensemble (Figs \ref{fig:pollution},
+\ref{fig:resource}).
+
+[Check with ASC if I did the correct experiments on resources - or how to interpret it]
+
+In many of our experimental settings the system was only partially recovered 
+despite we had full information of the control set at the start of the
+simulation. One plausible explanation is that the system required longer time
+to recover. Another more likely explanation is that our network setting allowed
+for changes in the amount and direction of flow of nutrients and pollutants. 
+In both systems the diffusion term depends on the difference in concentration 
+between patches ($\sum_{j\not=i}(d_{ij}y_j-d_{ji}y_i)A_{i,j}$). While the 
+adjacency matrix $A_{i,j}$ and the diffusion coefficients $\Delta{i,j}$ were 
+constant through the simulation, the direction of flow could change if the 
+difference $d_{ij}y_j-d_{ji}y_i$ was positive or negative. In practice, this
+means that the feedback structure and thus the control set can change over
+time, resulting in insufficient efforts to successfully stir the system towards
+full recovery.
+
+In practice, this is likely to be the case if one is managing metapopulation
+dynamics where animals are free to move from patch to patch and likely will do
+to places where they find better resources, which change over time. It is less
+likely to occur in settings where the flow of resources or pollutants is bounded
+by a physical parameter. For example, water between lakes flows according to 
+gravity, so nutrients are unlikely to be transported against it. While our 
+assumption is unrealistic for certain cases, it opens the case when the control
+set changes over time. In most real settings we do not even know the empirical
+structure of the network --how regime shifts are connected. Our results shows
+that even if we know the structure at certain point in time, successfully
+steering the networked system requires monitoring programs that enables learning
+the structure, direction and coupling strength of the system in real time.
+
+This dynamical feature is unlikely to affect our structural controllability
+results derived from causal networks, because the direction of causality is 
+unlikely to change. However, in a dynamical setting what can change is the 
+feedback strength or the coupling of different variables, akin 
+to $\Delta{i,j}$ in our simulations. Thus to apply efficient managerial
+practices that avoid tipping cascades, one could get further insights on the 
+priority of variables for management, or sequence of actions required. Our 
+results showed that while climate is important, other coupling mechanism
+can be more relevant in the sense that they appear in more pair-wise 
+combinations. Our results also confirm that dealing with climate related 
+variables alone wont be enough to prevent tipping cascades, after all, these 
+variables are a small share of the control set. 
+
+Our modelling framework opens the door for potential avenues of future research.
+Thus far our assumption is that an ideal manager can intervene all subsystems
+of the controlling set simultaneously. Relaxing such assumption would pose the 
+question whether is possible to recover the system with asynchronous control. 
+Another interesting avenue of future research is a more realistic case 
+with multiple managers who have to coordinate to avoid the tipping cascade. 
+Our results shows that interconnected systems posit certain subsystems and their
+managers in a privilege position to steer the system, for both good and bad.
+Given these power asymmetries, is coordination and cooperation likely to emerge
+to avoid tipping cascades? The question is imperative since both the climate
+and biodiversity crises underlie a similar networked structure and the framework
+here proposed, where a few actors have disproportional agency to influence 
+the overall dynamics of the system.
 
 # Conclusion
 
-400w
+
 
 # Acknowledgements
 
 # References
 
+\small
 ::: {#refs}
 :::
+
+
 
 \pagebreak
 

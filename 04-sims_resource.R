@@ -9,7 +9,7 @@ library(here)
 # library(igraph)
 # library(intergraph)
 # if working outside RStudio, set working directory
-setwd("/Users/juanrocha/Documents/Projects/imperio")
+#setwd("/Users/juanrocha/Documents/Projects/imperio")
 
 load("data_processed/230822_exp_design-resource.Rda")
 exp_design 
@@ -79,12 +79,12 @@ resource <- function(t, y, params){
 #### Test it works ####
 
 ## run simulations and save results in parallel: First option not working
-cl <- makeCluster(10)
+cl <- makeCluster(24) # Gunvor has 48
 registerDoParallel(cl)
 
 tic()
 foreach(i=1:nrow(exp_design)) %dopar% {
-    out <- ode(
+    out <- deSolve::ode(
         y = exp_design$yini[[i]], times = times, func = resource,
         parms = exp_design$params[[i]],
         method = "bdf", events = list(func = posfun, time = times)
@@ -102,12 +102,12 @@ stopCluster(cl)
 
 # 
 # df_sim <- out %>% as_tibble() %>%
-#     gather(key = "patches", value = "population", 2:last_col()) |> 
+#     gather(key = "patches", value = "population", 2:last_col()) |>
 #     mutate(time = as.numeric(time), population = as.numeric(population))
-# 
-# df_sim %>% 
-#     #filter(time < 5) |> 
+
+# df_sim %>%
+#     #filter(time < 5) |>
 #     ggplot(aes(x=time, y=population)) +
-#     geom_line(aes(color = patches), size = 0.25, show.legend = T) + 
+#     geom_line(aes(color = patches), size = 0.25, show.legend = T) +
 #     #labs(tag = "B") + ylim(c(0,20)) +
-#     theme_light()  
+#     theme_light()
