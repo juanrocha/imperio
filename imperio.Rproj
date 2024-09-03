@@ -11,3 +11,7 @@ Encoding: UTF-8
 
 RnwWeave: knitr
 LaTeX: XeLaTeX
+
+PythonType: conda
+PythonVersion: 3.9.12
+PythonPath: ~/opt/anaconda3/bin/python3.9

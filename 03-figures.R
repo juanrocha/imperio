@@ -22,7 +22,7 @@ g1 <- df_comb %>%
                              title.position = 'top', 
                              keywidth = unit(2.5, "mm"),
                              keyheight = unit(2.5, "mm"))) +
-    labs(x = "Number of driving nodes", y = "Regime shifts", tag = "A") +
+    labs(y = "Number of driving nodes", x = "Regime shifts", tag = "A") +
     theme_light(base_size = 5) + theme(legend.position = "bottom")
 
 
@@ -78,7 +78,10 @@ g3 <- df_comb %>%
     labs(x = "Number of regime shifts", y = "Control variables", tag = "C") +
     theme_light(base_size = 5) + theme(legend.position = "bottom")
 
-(g1 + g2 + g3) / guide_area() + plot_layout(guides = "collect", heights = c(3,0.5))
+(g1 + g2 + g3) / guide_area() + plot_layout(guides = "collect", heights = c(3,0.5)) & theme(
+    legend.text = element_text(size = 6, hjust = 0.5), 
+    legend.title = element_text(size = 8, hjust = 0.5),
+    plot.tag = element_text(size =6))
 
 
 ggsave(
@@ -105,36 +108,37 @@ p1 <- g2$data %>%
             title.position = 'top', 
             keywidth = unit(2.5, "mm"),
             keyheight = unit(2.5, "mm"))) +
-    scale_x_reverse(labels = scales::percent) +
+    scale_x_reverse(labels = scales::percent, limits = c(0.9,NA)) +
     scale_y_discrete(position = "right") +
-    labs(x = "Ratio of nodes", y = "", tag = "A") +
+    labs(x = "", y = "", tag = "A") +
     theme_light(base_size = 5) + 
-    theme(legend.position = "bottom", 
+    theme(legend.position = "inside",
+        legend.position.inside = c(0.1, 0.8), 
           axis.text.y.right = element_text(hjust = 1))
 
 # this graph has 
-p2 <- df_comb %>% 
-    select(-n) %>% 
-    group_by(couple) %>% 
-    add_count() %>% ungroup() %>% 
-    separate(couple, into = c("rs1", "rs2"), sep = "_")  %>% 
-    nest(cols = c(node, type)) %>% 
-    arrange(rs1, rs2) %>% 
+p2 <- df_comb %>%
+    select(-n) %>%
+    group_by(couple) %>%
+    add_count() %>% ungroup() %>%
+    separate(couple, into = c("rs1", "rs2"), sep = "_")  %>%
+    nest(cols = c(node, type)) %>%
+    arrange(rs1, rs2) %>%
     mutate(rs1 = as_factor(rs1)  ,
-           rs2 = as_factor(rs2) %>% fct_rev() ) %>% 
+           rs2 = as_factor(rs2) %>% fct_rev() ) %>%
     ggplot(aes(rs1, rs2)) +
     geom_tile(aes(fill = n)) +
     scico::scale_fill_scico(
         name = "Number of nodes", palette = "roma", direction = -1,
         guide = guide_colorbar(
             title.hjust = 0.5, direction = "horizontal",
-            title.position = "top", barheight = unit(2.5, "mm"), 
+            title.position = "top", barheight = unit(2.5, "mm"),
             barwidth = unit(2, "cm"))) +
-    labs(x= "Regime shift couples", y = "", tag = "B") +
+    labs(x= "", y = "", tag = "B") +
     theme_light(base_size = 5) +
     theme(axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5),
-          axis.text.y = element_blank(), 
-          legend.position = "bottom")
+          axis.text.y = element_blank(),
+          legend.position = "inside", legend.position.inside = c(0.75,0.9))
 
 ## this is proportion, p2 is number of nodes
 p3 <- df_stats %>% 
@@ -147,11 +151,11 @@ p3 <- df_stats %>%
             title.hjust = 0.5, direction = "horizontal",
             title.position = "top", barheight = unit(2.5, "mm"), 
             barwidth = unit(2, "cm"))) +
-    labs(x= "Regime shift couples", y = "", tag = "C") +
+    labs(x= "", y = "", tag = "B") +
     theme_light(base_size = 5) +
     theme(axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5),
           axis.text.y = element_blank(), 
-          legend.position = "bottom")
+          legend.position = "inside", legend.position.inside = c(0.75,0.9))
 
 
 p4 <- df_comb %>% 
@@ -166,7 +170,7 @@ p4 <- df_comb %>%
     ggplot(aes(node, n)) +
     geom_col() +
     coord_flip() +
-    labs(x = "Most common driver nodes", y = "Regime shifts pair-wise combinations", tag = "D")+
+    labs(x = "Most common driver nodes", y = "Regime shifts pair-wise\n combinations", tag = "C")+
     theme_light(base_size = 5)
 
 
@@ -177,12 +181,18 @@ ABBCCD
 ABBCCD
 #####D
 "
+# layout <- "
+# ABBC
+# ABBC
+# ABBC
+# ABBC
+# "
 
 p1 + p2 + p3 + p4 + 
-    plot_layout(design = layout, heights = c(2,2,2,2,0.1))
+    plot_layout(design = layout, heights = c(2,2,2,2, 0.1))
 
 ggsave(
-    filename = "fig2_combined-control.png",
+    filename = "draft_combined-control.png",
     path = "paper/figures/",
     plot = last_plot(),
     device = "png",

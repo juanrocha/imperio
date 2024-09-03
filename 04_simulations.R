@@ -35,6 +35,7 @@ u_pollution <- approxfun(nutrients_df)
 ## Pollution model:
 pollution <- function(t, y, params,...){
     with(as.list(c(y, params)), {
+        
         x = y
         n = length(x) # capturing again n_size
         ## If controlling node use u_pollution, else a constant
@@ -81,3 +82,60 @@ stopCluster(cl)
 ## Second option with furrr
 
 
+
+## check errors in delta
+(exp_design$net[[1]] |> igraph::as_adjacency_matrix(sparse = FALSE) *
+exp_design$delta_ij[[1]]) |> colSums()
+
+check_mat <- function(A, delta){
+    A = A |> igraph::as_adjacency_matrix(sparse = FALSE)
+    any(
+        colSums(A*delta) > 1,
+        rowSums(A*delta) > 1
+    )
+}
+
+# test
+check_mat(exp_design$net[[1]], exp_design$delta_ij[[1]])
+
+resp <- list()
+tic()
+resp <- map2_lgl(.x = exp_design$net, .y = exp_design$delta_ij, .f = check_mat)
+toc()
+
+sum(resp) # mumber of matrixes with delta > 1
+
+outdegree <- map(exp_design$net, degree, mode = "out")
+indegree <- map(exp_design$net, degree, mode = "in")
+head(outdegree)
+
+delta_ij <- pmap(
+    list(exp_design$delta_ij,outdegree, indegree),
+    function(net, out, ind){
+        # I'm assuming from i to j
+        net[upper.tri(net)] <- (net/out)[upper.tri(m)]
+        net[lower.tri(net)] <- (net/ind)[lower.tri(m)]
+        net[is.infinite(net)] <- 0
+        return(net)
+    })
+
+## reset the parameters and update the delta_ij
+
+exp_design <- exp_design |> select(-params) |> 
+    #mutate(net = nets) |> # no need to repeat
+    mutate(delta_ij = list(delta_ij)) |> 
+    rowwise() |>
+    ## seting parameters now inside the dataframe
+    mutate(params = list(list(
+        s = rep(2.2, n_size),    # internal loss rate (sedimentation)
+        v = rep(10, n_size),     # max level of internal nutrient release
+        z = rep(2.2, n_size),    # threshold
+        alpha = 4,  # sharpness of the shift
+        delta_ij = delta_ij,
+        A_ij = net |> as_adjacency_matrix() |> as.matrix(),
+        # remove NAs, they come when fvs is empty (dags)
+        controlling_set = c(mds, fvs) |> na.omit() |> as.vector()
+    ))
+    ) |> ungroup()
+
+base::save(exp_design, file = "data_processed/240903_exp_design.Rda")

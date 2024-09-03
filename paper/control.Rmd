@@ -11,7 +11,7 @@ csl: nature.csl
 output:
   pdf_document:
     dev: pdf
-    keep_tex: no
+    keep_tex: yes
     toc: no
     latex_engine: xelatex
 citecolor: blue
