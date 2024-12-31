@@ -11,33 +11,33 @@ library(here)
 # if working outside RStudio, set working directory
 #setwd("/Users/juanrocha/Documents/Projects/imperio")
 
-load("data_processed/230822_exp_design-resource.Rda")
+load("data_processed/240903_exp_design-resource.Rda")
 exp_design 
 
 # update parameters for resource model
-# exp_design <- exp_design |> 
-#     select(-params, -yini) |> 
-#     rowwise() |>
-#     ## seting parameters now inside the dataframe
-#     mutate(params = list(list(
-#         r = rep(1.5, n_size),    # Instrinsic growth rate
-#         K = rep(10, n_size),     # Carrying capacity
-#         q = rep(2.2, n_size),    # threshold
-#         beta = 4,  # sharpness of the shift
-#         delta_ij = delta_ij,
-#         A_ij = net |> igraph::as_adjacency_matrix() |> as.matrix(),
-#         # remove NAs, they come when fvs is empty (dags)
-#         controlling_set = c(mds, fvs) |> na.omit() |> as.vector()
-#     ))
-#     ) |> ungroup()
-# 
-# exp_design <- exp_design |> 
-#     rowwise() |> 
-#     mutate(yini = list(runif(n_size, 1,4.5))) # I need some systems in low regime, K = 10
+exp_design <- exp_design |>
+    select(-params, -yini) |>
+    rowwise() |>
+    ## seting parameters now inside the dataframe
+    mutate(params = list(list(
+        r = rep(1.5, n_size),    # Instrinsic growth rate
+        K = rep(10, n_size),     # Carrying capacity
+        q = rep(2.2, n_size),    # threshold
+        beta = 4,  # sharpness of the shift
+        delta_ij = delta_ij,
+        A_ij = net |> igraph::as_adjacency_matrix() |> as.matrix(),
+        # remove NAs, they come when fvs is empty (dags)
+        controlling_set = c(mds, fvs) |> na.omit() |> as.vector()
+    ))
+    ) |> ungroup()
+
+exp_design <- exp_design |>
+    rowwise() |>
+    mutate(yini = list(runif(n_size, 1,4.5))) # I need some systems in low regime, K = 10
 
 times <- seq(from = 0, to = 200, by = 0.01)
 
-# base::save(exp_design, file = "data_processed/230822_exp_design-resource.Rda")
+# base::save(exp_design, file = "data_processed/240903_exp_design-resource.Rda")
 
 # This event function avoids negative levels of pollutants
 # Add this directly above your call to ode()
@@ -79,7 +79,7 @@ resource <- function(t, y, params){
 #### Test it works ####
 
 ## run simulations and save results in parallel: First option not working
-cl <- makeCluster(24) # Gunvor has 48
+cl <- makeCluster(48) # Gunvor has 48
 registerDoParallel(cl)
 
 tic()

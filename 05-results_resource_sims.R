@@ -5,14 +5,14 @@ library(deSolve)
 library(patchwork)
 library(furrr)
 
-load("data_processed/230819_exp_design.Rda")
+load("data_processed/240903_exp_design-resource.Rda")
 exp_design
 
 load("data_processed/resource_processed_results.Rda")
 
 # run in gunvor
 # fls <- dir_ls("/home/juan/imperio/simulations/") |> str_subset(pattern = ".Rda")
-
+fls <- dir_ls("simulations/resource/") |> str_subset(pattern = '.Rda')
 
 ## extract key results ##
 ## 1. % of systems recovered
@@ -27,38 +27,38 @@ load("data_processed/resource_processed_results.Rda")
 #     fls,
 #     function(x) {
 #         load(x)
-#         rec_sys <- out |> 
-#             as_tibble() |> 
-#             mutate(across(time:last_col(), as.numeric)) |> 
+#         rec_sys <- out |>
+#             as_tibble() |>
+#             mutate(across(time:last_col(), as.numeric)) |>
 #             pivot_longer(
-#                 `1`:last_col(), names_to = "system", values_to = "resources") |> 
-#             group_by(system) |> 
-#             mutate(high_resource = resources >=5) |> 
+#                 `1`:last_col(), names_to = "system", values_to = "resources") |>
+#             group_by(system) |>
+#             mutate(high_resource = resources >=5) |>
 #             mutate(
 #                 lag1 = slider::slide_dbl(
 #                     resources, diff, .before = 1, .complete = TRUE)) |>
 #             # make sure you're not picking the first dynamics towards equilibrium
 #             filter(time > 5, any(high_resource)) |>
-#             filter(lag1 == max(lag1)) |> 
-#             ungroup() |> select(-high_resource, lag1) |> 
+#             filter(lag1 == max(lag1)) |>
+#             ungroup() |> select(-high_resource, lag1) |>
 #             mutate(file = as.character(x))
-#         
+# 
 #         return(rec_sys)
 #     }
 # )
-# toc()
+# toc() # 56795.827 sec elapsed,15h
 
 head(recovered_systems)
 
 ## because the sims were on parallel, the files were created asynchronously and they are not in order. Thus the object does not follow the id order of exp_design. 
 
-# recovered_systems <- recovered_systems |> 
+# recovered_systems <- recovered_systems |>
 #     bind_rows()
 # 
 # tic()
-# recovered_systems <- recovered_systems |> 
-#     separate(file, into = c("root", "exp_id", "exp_rep", "id"), sep = "_") |> 
-#     select(-root) |> 
+# recovered_systems <- recovered_systems |>
+#     separate(file, into = c("root", "exp_id", "exp_rep", "id"), sep = "_") |>
+#     select(-root) |>
 #     mutate(id = str_remove_all(id, "file|Rda"),
 #            exp_id = str_remove(exp_id, "expid"),
 #            exp_rep = str_remove(exp_rep, "rep"),
@@ -134,13 +134,13 @@ a <- recovered_systems |>
 
 # plan(multisession, workers = 10)
 # tic()
-# exp_design <- exp_design |> #head() |> 
-#         unnest(mds) |> unnest(fvs) |> 
-#         group_by(id) |> 
+# exp_design <- exp_design |> #head() |>
+#         unnest(mds) |> unnest(fvs) |>
+#         group_by(id) |>
 #         pivot_longer(
-#             cols = c(mds,fvs), names_to = "set_class", values_to = "control_set") |> 
-#         filter(!is.na(control_set)) |> select(-set_class) |> 
-#         unique() |> 
+#             cols = c(mds,fvs), names_to = "set_class", values_to = "control_set") |>
+#         filter(!is.na(control_set)) |> select(-set_class) |>
+#         unique() |>
 #         nest(cs = control_set)
 # toc() #900 s ~15min
 b <- recovered_systems |>
