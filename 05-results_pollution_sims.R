@@ -5,7 +5,8 @@ library(deSolve)
 library(patchwork)
 library(furrr)
 
-load("data_processed/230819_exp_design.Rda")
+load("data_processed/250225_exp_design.Rda")
+load("data_processed/250225_exp_design.Rda")
 exp_design
 
 #fls <- dir_ls("simulations/") |> str_subset(pattern = ".Rda")
@@ -127,13 +128,13 @@ a <- recovered_systems |>
 
 # plan(multisession, workers = 10)
 # tic()
-# exp_design <- exp_design |> #head() |> 
-#         unnest(mds) |> unnest(fvs) |> 
-#         group_by(id) |> 
+# exp_design <- exp_design |> #head() |>
+#         unnest(mds) |> unnest(fvs) |>
+#         group_by(id) |>
 #         pivot_longer(
-#             cols = c(mds,fvs), names_to = "set_class", values_to = "control_set") |> 
-#         filter(!is.na(control_set)) |> select(-set_class) |> 
-#         unique() |> 
+#             cols = c(mds,fvs), names_to = "set_class", values_to = "control_set") |>
+#         filter(!is.na(control_set)) |> select(-set_class) |>
+#         unique() |>
 #         nest(cs = control_set)
 # toc() #900 s ~15min
 
@@ -192,6 +193,26 @@ ggsave(
     width = 3.5, height = 5, dpi = 500, bg = "white"
 )
 
+d <- recovered_systems |> 
+    mutate(id = as.numeric(id)) |> 
+    arrange(id) |> 
+    group_by(id) |> 
+    summarize(recovered = n(), mean_time = mean(time)) |> 
+    right_join(exp_design |> 
+                   mutate(class = as_factor(class))) |> 
+    mutate(prop_recovered = recovered / n_size) |> 
+    ggplot(aes(prop_recovered, mean_time)) +
+    geom_point(aes(color = henrici, shape = dag), alpha = 0.5, size = 0.5) +
+    facet_grid(delta~class, scales = "free_x") +
+    labs(tag = "C", x = "Proportion of nodes recovered", y = "Mean recovery time") +
+    scale_color_viridis_c(name = "Henrici") +
+    scale_shape(name = "Type") +
+    theme_light(base_size = 10) +
+    theme(legend.position = c(0.05, 0.2), legend.direction = 'vertical',
+          legend.key.size = unit(2, "mm"), #legend.text = element_text(size = 4),
+          legend.spacing.y = unit(0.5, "mm"), legend.background = element_rect(fill = "transparent"))
+    
+d
 # save(recovered_systems, file = "data_processed/pollution_processed_results.Rda")
 
 ## Random notes:
