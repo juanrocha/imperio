@@ -16,7 +16,6 @@
 *.bib
 *.tex
 *.Rda
-.gitignore
 *.doc
 *.docx
 *.zip
