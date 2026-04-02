@@ -1,6 +1,7 @@
 library(tictoc)
 library(deSolve)
-library(tidyverse)
+library(dplyr)
+library(purrr)
 library(foreach)
 library(doParallel)
 library(fs)
