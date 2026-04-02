@@ -134,7 +134,10 @@ used to steer chaotic systems to desired trajectories in the phase
 space. Another example of controllability in ecological food webs shows
 limited ability of linear methods when dealing with nonlinear
 interactions, and suggest degree ranks as proxy of nodal importance
-rather than Kalman rank condition based metrics [@jiang2019].
+rather than linear based metrics [@jiang2019].
+
+\<swap the order of the methods, perhaps is more intuitive, and use
+subheadings\>
 
 Here we focus on feedback vertex sets as a proxy of structural
 controllability [@Liu:2015wl; @Zanudo:2017hw] of regime shifts and their
