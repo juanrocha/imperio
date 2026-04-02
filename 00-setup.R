@@ -1,5 +1,5 @@
 ## Install the necessary packages when working remotely
 install.packages("pak")
 
-pak::pak(c("tidyverse", "igraph", "tictoc", "deSolve", "foreach", "furrr", "futures", "doParallel",
-                   "fs", "here", ""))
+pak::pak(c("dplyr", "igraph", "tictoc", "deSolve", "foreach", "furrr", "future",
+           "doParallel", "fs", "here"))
