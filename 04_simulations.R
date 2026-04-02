@@ -10,12 +10,12 @@ library(furrr)
 # library(igraph)
 # library(intergraph)
 # if working outside RStudio, set working directory
-setwd("/Users/juanrocha/Documents/Projects/imperio")
+# setwd("/Users/juanrocha/Documents/Projects/imperio")
 
-load("data_processed/230819_exp_design.Rda")
+load("data_processed/250225_exp_design.Rda")
 exp_design 
-#### Pollution model ####
 
+#### Pollution model ####
 # This event function avoids negative levels of pollutants
 # Add this directly above your call to ode()
 posfun <- function(t, y, parms){

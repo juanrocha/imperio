@@ -3,14 +3,14 @@ library(igraph)
 library(tictoc)
 
 load("data_processed/250225_exp_design.Rda") # when working with pollution
-load("data_processed/250225_exp_design-resource.Rda") # when working with resource
+# load("data_processed/250225_exp_design-resource.Rda") # when working with resource
 
 # this dataset has already computed the non-normality statistic
 exp_design
 
-exp_design |> 
-    slice(1) |> 
-    pull(params)
+# exp_design |> 
+#     slice(1) |> 
+#     pull(params)
 
 ## Modify the controlling set, replace for the top degree nodes but same number of nodes
 
@@ -40,7 +40,7 @@ exp_design <- exp_design |>
     mutate(top_degree_set = top_degree_set) |> 
     rowwise() |>
     ## seting parameters now inside the dataframe
-    mutate(params2 = list(list(
+    mutate(params = list(list(
         s = rep(2.2, n_size),    # internal loss rate (sedimentation)
         v = rep(10, n_size),     # max level of internal nutrient release
         z = rep(2.2, n_size),    # threshold
@@ -49,20 +49,21 @@ exp_design <- exp_design |>
         A_ij = net |> as_adjacency_matrix() |> as.matrix(),
         # top nodes by degree, size == original controlling set:
         controlling_set = top_degree_set
-    )) ) |>
-    mutate(params3 = list(list(
-        s = rep(2.2, n_size),    # internal loss rate (sedimentation)
-        v = rep(10, n_size),     # max level of internal nutrient release
-        z = rep(2.2, n_size),    # threshold
-        alpha = 4,  # sharpness of the shift
-        delta_ij = delta_ij,
-        A_ij = net |> as_adjacency_matrix() |> as.matrix(),
-        # top nodes by degree, size == original controlling set:
-        controlling_set = 1:n_size))
-    ) |> 
+    )) ) |> # just re-write the params according with the simulation run
+    # mutate(params = list(list(
+    #     s = rep(2.2, n_size),    # internal loss rate (sedimentation)
+    #     v = rep(10, n_size),     # max level of internal nutrient release
+    #     z = rep(2.2, n_size),    # threshold
+    #     alpha = 4,  # sharpness of the shift
+    #     delta_ij = delta_ij,
+    #     A_ij = net |> as_adjacency_matrix() |> as.matrix(),
+    #     # top nodes by degree, size == original controlling set:
+    #     controlling_set = 1:n_size))
+    # ) |> 
     ungroup()
 toc() # 23s
 
-exp_design$params3[[1]]
+rm(size_controlling_set, top_degree_set)
+detach("package:igraph")
 
 
