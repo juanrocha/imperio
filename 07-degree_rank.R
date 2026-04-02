@@ -50,7 +50,7 @@ exp_design <- exp_design |>
     #     A_ij = net |> as_adjacency_matrix() |> as.matrix(),
     #     # top nodes by degree, size == original controlling set:
     #     controlling_set = top_degree_set
-    )) ) |> # just re-write the params according with the simulation run
+#    )) ) |> # just re-write the params according with the simulation run
     mutate(params = list(list(
         s = rep(2.2, n_size),    # internal loss rate (sedimentation)
         v = rep(10, n_size),     # max level of internal nutrient release
