@@ -1,27 +1,24 @@
 ---
 title: "Structural controllability and management of cascading regime shifts"
-author: |
-    | \small Juan C. Rocha^1^, Anne-Sophie Crépin^2^
-    | \small
-    | \small ^1^Stockholm Resilience Centre, Stockholm University
-    | \small ^2^Beijer Institute of Ecological Economics, The Royal Swedish Academy of Sciences
-    
+author: "| \\small Juan C. Rocha^1^, Anne-Sophie Crépin^2^\n| \\small\n| \\small ^1^Stockholm
+  Resilience Centre, Stockholm University\n| \\small ^2^Beijer Institute of Ecological
+  Economics, The Royal Swedish Academy of Sciences\n"
 bibliography: refs.bib
-csl: "/Users/juanrocha/Documents/styles/nature.csl"
 output:
+  word_document:
+    toc: false
   pdf_document:
     dev: pdf
-    keep_tex: yes
-    toc: no
+    keep_tex: true
+    toc: false
     latex_engine: xelatex
+csl: /Users/juanrocha/Documents/styles/nature.csl
 citecolor: blue
 documentclass: article
-# font: Arial
 fontsize: 10pt
 linkcolor: blue
 urlcolor: blue
 header-includes:
-
 - \usepackage{abstract}
 - \usepackage[switch, columnwise]{lineno}
 - \linenumbers
@@ -29,15 +26,20 @@ header-includes:
 - \renewcommand{\abstracttextfont}{\normalfont\small\itshape}
 - \graphicspath{{figures/}}
 - \usepackage[margin=2.5cm]{geometry}
-
 editor_options:
   markdown:
     wrap: 72
-
-classoption:
-- twocolumn
-
-abstract: "Abrupt transitions in ecosystems can be interconnected, raising challenges for science and management in identifying sufficient interventions to prevent them or recover from undesirable shifts. Here we use principles of network controllability to explore how difficult it is to manage coupled regime shifts. We find that coupled regime shifts are easier to manage when they share drivers, but can become harder to manage if new feedbacks are formed when coupled. Simulation experiments showed that both network structure and coupling strength matter in our ability to manage interconnected systems. This theoretical observation calls for an empirical assessment of cascading regime shifts in ecosystems and warns about our limited ability to control cascading effects."
+classoption: twocolumn
+abstract: Abrupt transitions in ecosystems can be interconnected, raising challenges
+  for science and management in identifying sufficient interventions to prevent them
+  or recover from undesirable shifts. Here we use principles of network controllability
+  to explore how difficult it is to manage coupled regime shifts, that is to recover interconnected systems after they have undergo a bifurcation. We find that coupled
+  regime shifts are easier to manage when they share drivers, but can become harder
+  to manage if new feedbacks are formed when coupled. Simulation experiments showed
+  that both network structure and coupling strength matter in our ability to manage
+  interconnected systems. This theoretical observation calls for an empirical assessment
+  of cascading regime shifts in ecosystems and warns about our limited ability to
+  control cascading effects.
 ---
 
 ```{r data, include=FALSE}
@@ -52,17 +54,21 @@ and structure of systems [@Anonymous:2004bq; @Scheffer:2001p2968]. They
 have been documented in a variety of social-ecological systems
 [@Scheffer:2009wl; @Biggs:2018hx], as well as climate [@Lenton:2019fv],
 finance[@Guttal:2016kl], or health [@vandeLeemput:2014eb], to name a few
-examples. Changes in structure and function of ecosystems can diminish
-the benefits people get from nature such as food production, employment
-opportunities, climate regulation, or water purification
-[@Carpenter:2009jr]. For example, the North Atlantic cod collapse
-represented substantial economic losses, and compromised more than 35000
-jobs in 400 coastal communities[@gien2000land]. The weakening or late
-arrival of the Indian summer monsoon can compromise food production in
-one of the most densely populated regions of the world. How management
-strategies avoid regime shifts or recover natural ecosystems to
-desirable regimes are key research questions and an active area of
-research.
+examples. Regime shifts in ecology are equivalent to the concepts of
+bifurcations in mathematics, or phase transitions in physics; where a
+regime is an attractor (e.g. a stable equilibrium, a limit cycle, or a
+basin of attraction), and the shift marks the bifurcation between one
+qualitative type of behaviour and another. Changes in structure and
+function of ecosystems can diminish the benefits people get from nature
+such as food production, employment opportunities, climate regulation,
+or water purification [@Carpenter:2009jr]. For example, the North
+Atlantic cod collapse represented substantial economic losses, and
+compromised more than 35000 jobs in 400 coastal
+communities[@gien2000land]. The weakening or late arrival of the Indian
+summer monsoon can compromise food production in one of the most densely
+populated regions of the world. How management strategies avoid regime
+shifts or recover natural ecosystems to desirable regimes are key
+research questions and an active area of research.
 
 But one theoretical fact that complicates their study and management is
 that regime shifts can be interconnected [@Rocha:2018gn]. The occurrence
@@ -76,9 +82,9 @@ between climate tipping elements to understand additional challenges of
 prediction [@Dekker:2010p5900], or the role of minimal network
 configurations [@Wunderling:2020jk]. Besides climate, cascading effects
 have also been studied in the context of engineered systems
-[@Brummitt:2012it; @DSouza:2017hz], social and economic systems
-[@Lee:2011p6824, @Brummitt:2017cg; @Anonymous:2015jy], or diseases
-[@Watts:2005bq].
+[@Brummitt:2012it; @DSouza:2017hz; @motter2004], social and economic
+systems [@Lee:2011p6824, @Brummitt:2017cg; @Anonymous:2015jy], or
+diseases [@Watts:2005bq].
 
 The possibility of cascading regime shifts raises a few additional
 challenges for management. First, long distance coupling or
@@ -109,19 +115,35 @@ Here we answer these questions in the light of controllability of
 complex systems. A system is controllable if one can drive it from any
 initial state to any desired final state in finite time [@Kalman:1963bt;
 @Liu:2015wl; @Liu:2011p6911]. Hence, controllability quantifies our
-ability to steer dynamical systems [@Liu:2011p6911]. While control
-theory has been fairly well developed in the realm of linear systems,
-many open problems remain for nonlinear ones [@Cowan:2012fk;
-@Liu:2015wl]. Strict global controllability of nonlinear systems remain
-elusive, but weaker notions of controllability can be described
-[@Liu:2015wl; @Zanudo:2017hw; @Mochizuki:2013uz]. For example, open loop
-control has been used to steer chaotic systems to desired trajectories
-in the phase space. Here we focus on feedback vertex sets as a proxy of
-structural controllability [@Liu:2015wl; @Zanudo:2017hw] of regime
-shifts and their interactions. We use network topology to gain insights
-on the controllability of regime shift and the management challenges of
-their cascading effects. We further test our intuitions with minimal
-models of interconnected resources and pollution recipient systems.
+ability to steer dynamical systems [@Liu:2011p6911]. Early work on the
+topic focused on a special type of transition in networks known as
+percolation [@motter2002; @motter2004], a continuous phase transition
+where a function performed by a network is lost as the giant component
+disintegrates (e.g. a blackout on a power grid). Early work
+[@motter2002; @motter2004], however, do not take into consideration
+discontinuous transitions, which are more common in ecological systems,
+and because of hysteresis, they are more challenging for management.
+
+While control theory has been fairly well developed in the realm of
+linear systems, many open problems remain for nonlinear ones
+[@Cowan:2012fk; @Liu:2015wl; @jiang2019]. Strict global controllability
+of nonlinear systems remain elusive, but weaker notions of
+controllability can be described [@Liu:2015wl; @Zanudo:2017hw;
+@Mochizuki:2013uz; @jiang2019]. For example, open loop control has been
+used to steer chaotic systems to desired trajectories in the phase
+space. Another example of controllability in ecological food webs shows
+limited ability of linear methods when dealing with nonlinear
+interactions, and suggest degree ranks as proxy of nodal importance
+rather than Kalman rank condition based metrics [@jiang2019].
+
+Here we focus on feedback vertex sets as a proxy of structural
+controllability [@Liu:2015wl; @Zanudo:2017hw] of regime shifts and their
+interactions. First, we use network topology to gain insights on the
+controllability of regime shift and the management challenges of their
+cascading effects by studying causal networks from the [regime shifts
+database](www.regimeshifts.org) [@Biggs:2018hx]. We further test our
+intuitions with minimal models of interconnected resources and pollution
+recipient systems.
 
 # Methods
 

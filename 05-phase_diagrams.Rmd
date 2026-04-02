@@ -134,6 +134,19 @@ phase_plot <- function(pollution, params){
 phase_plot(pollution, params)
 ```
 
+## Cusp
 
+$$\dot{y} = \beta_{1} + \beta_{2}y - y^3 $$
 
+```{r}
+## Pollution model:
+cusp <- function(t, y, params){
+  with(as.list(c(y, params)), {
+    dy <- b1 + b2*y - y^3
+    
+    return(list(c(dy)))
+  })
+}
+
+```
 
