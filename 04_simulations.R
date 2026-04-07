@@ -59,7 +59,7 @@ cl <- makeCluster(10)
 registerDoParallel(cl)
 
 tic()
-foreach(i=1:nrow(exp_design)) %dopar% {
+foreach(i=780:nrow(exp_design)) %dopar% {
     tictoc::tic()
     out <- deSolve::ode(
         y = exp_design$yini[[i]], times = times, func = pollution,
