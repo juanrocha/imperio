@@ -5,6 +5,17 @@ author: "Juan Rocha"
 output: html_document
 ---
 
+
+**J260410**
+
+[x] Re-run simulations in server:
+    - Null model: control all nodes, expectation is to recover all
+    - Degree-rank: same amount as control set, but only max degree nodes
+    - script 07 provides both parametrization options
+    - currently only testing on pollution model
+[x] simulations_null: results downloaded for first option
+[] simulations_degree: results downloaded for second option
+
 *J230818*
 
 - Simulations are up and running for pollution system with an experimental design

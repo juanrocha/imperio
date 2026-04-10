@@ -41,16 +41,6 @@ exp_design <- exp_design |>
     mutate(top_degree_set = top_degree_set) |> 
     rowwise() |>
     ## seting parameters now inside the dataframe
-    # mutate(params = list(list(
-    #     s = rep(2.2, n_size),    # internal loss rate (sedimentation)
-    #     v = rep(10, n_size),     # max level of internal nutrient release
-    #     z = rep(2.2, n_size),    # threshold
-    #     alpha = 4,  # sharpness of the shift
-    #     delta_ij = delta_ij,
-    #     A_ij = net |> as_adjacency_matrix() |> as.matrix(),
-    #     # top nodes by degree, size == original controlling set:
-    #     controlling_set = top_degree_set
-#    )) ) |> # just re-write the params according with the simulation run
     mutate(params = list(list(
         s = rep(2.2, n_size),    # internal loss rate (sedimentation)
         v = rep(10, n_size),     # max level of internal nutrient release
@@ -59,8 +49,18 @@ exp_design <- exp_design |>
         delta_ij = delta_ij,
         A_ij = net |> as_adjacency_matrix() |> as.matrix(),
         # top nodes by degree, size == original controlling set:
-        controlling_set = 1:n_size))
-    ) |>
+        controlling_set = top_degree_set
+    )) ) |> # just re-write the params according with the simulation run
+    # mutate(params = list(list(
+    #     s = rep(2.2, n_size),    # internal loss rate (sedimentation)
+    #     v = rep(10, n_size),     # max level of internal nutrient release
+    #     z = rep(2.2, n_size),    # threshold
+    #     alpha = 4,  # sharpness of the shift
+    #     delta_ij = delta_ij,
+    #     A_ij = net |> as_adjacency_matrix() |> as.matrix(),
+    #     # top nodes by degree, size == original controlling set:
+    #     controlling_set = 1:n_size))
+    # ) |>
     ungroup()
 toc() # 23s
 
