@@ -14,7 +14,10 @@ output: html_document
     - script 07 provides both parametrization options
     - currently only testing on pollution model
 [x] simulations_null: results downloaded for first option
-[] simulations_degree: results downloaded for second option
+[x] simulations_degree: results downloaded for second option
+
+The results are on old computer, but the results of the actual pollution and resource
+experiments are in the new computer.
 
 *J230818*
 

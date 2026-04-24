@@ -5,11 +5,11 @@ library(deSolve)
 library(patchwork)
 library(furrr)
 
-load("data_processed/250225_exp_design.Rda")
-load("data_processed/250225_exp_design.Rda")
+load("data_processed/250225_exp_design.Rda") # when working with pollution
+# load("data_processed/250225_exp_design-resource.Rda") # when working with resource
 exp_design
 
-#fls <- dir_ls("simulations/") |> str_subset(pattern = ".Rda")
+fls <- dir_ls("simulations_degree_rank/") |> str_subset(pattern = ".Rda")
 
 ## a function for plotting quick the networks:
 # net_plot <- function(x) { #x is the net object
@@ -45,44 +45,48 @@ exp_design
 ## 2. are they the same as the control_set?
 ## 3. when do they recovered? is the control_set / n related to faster recovery?
 # 
-# plan(multisession, workers = 10)
-# 
-# tic()
-# recovered_systems <- future_map(
-#     fls,
-#     function(x) {
-#         load(x)
-#         rec_sys <- out |> 
-#             as_tibble() |> 
-#             mutate(across(time:last_col(), as.numeric)) |> 
-#             pivot_longer(
-#                 `1`:last_col(), names_to = "system", values_to = "nutrients") |> 
-#             group_by(system) |> 
-#             mutate(low_nutrient = nutrients <=0.01) |> 
-#             mutate(
-#                 lag1 = slider::slide_dbl(
-#                     nutrients, diff, .before = 1, .complete = TRUE)) |>
-#             # make sure you're not picking the first dynamics towards equilibrium
-#             filter(time > 5, any(low_nutrient)) |>
-#             filter(lag1 == min(lag1)) |> 
-#             ungroup() |> select(-low_nutrient, lag1) |> 
-#             mutate(file = as.character(x))
-#         
-#         return(rec_sys)
-#     }
-# )
-# toc() #1073.472 for 96 files, 51s for 6 files, 11s in parallel. | 15275.571 sec elapsed in parallel for 9600 files
+plan(multisession, workers = 10)
+
+tic()
+recovered_systems <- future_map(
+    fls,
+    function(x) {
+        load(x)
+        rec_sys <- out |>
+            as_tibble() |>
+            mutate(across(time:last_col(), as.numeric)) |>
+            pivot_longer(
+                `1`:last_col(), names_to = "system", values_to = "nutrients") |>
+            group_by(system) |>
+            mutate(low_nutrient = nutrients <=0.01) |>
+            mutate(
+                lag1 = slider::slide_dbl(
+                    nutrients, diff, .before = 1, .complete = TRUE)) |>
+            # make sure you're not picking the first dynamics towards equilibrium
+            filter(time > 5, any(low_nutrient)) |>
+            filter(lag1 == min(lag1)) |>
+            ungroup() |> select(-low_nutrient, lag1) |>
+            mutate(file = as.character(x))
+
+        return(rec_sys)
+    }
+)
+toc() #1073.472 for 96 files, 51s for 6 files, 11s in parallel. | 15275.571 sec elapsed in parallel for 9600 files
 # 
 # head(recovered_systems)
 # 
 # ## because the sims were on parallel, the files were created asynchronously and they are not in order. Thus the object does not follow the id order of exp_design. 
 # 
-# recovered_systems <- recovered_systems |> 
-#     bind_rows()
-load("data_processed/pollution_processed_results.Rda")
+recovered_systems <- recovered_systems |>
+    bind_rows()
+
+# save(recovered_systems, file = "data_processed/pollution_processed_results_degree_rank.Rda")
+#load("data_processed/pollution_processed_results.Rda")
 
 tic()
 recovered_systems <- recovered_systems |>
+    # on null and degree simulations the folder name changed including _, so need to correct for it
+    mutate(file = str_remove(file, pattern = "simulations_degree_rank/")) |> 
     separate(file, into = c("root", "exp_id", "exp_rep", "id"), sep = "_") |>
     select(-root) |>
     mutate(id = str_remove_all(id, "file|Rda"),
@@ -189,7 +193,7 @@ a/b/c
 
 ggsave(
     plot = a/b/c,
-    filename = "pollution_results.png", path = "figures/", device = "png",
+    filename = "pollution_degree_rank.png", path = "figures/", device = "png",
     width = 3.5, height = 5, dpi = 500, bg = "white"
 )
 
