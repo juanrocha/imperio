@@ -11,40 +11,12 @@ exp_design
 
 fls <- dir_ls("simulations_null/") |> str_subset(pattern = ".Rda")
 
-## a function for plotting quick the networks:
-# net_plot <- function(x) { #x is the net object
-#     ggplot(ggnetwork::ggnetwork(x, arrow.gap = 0.005) ,
-#            aes(x = x, y = y, xend = xend, yend = yend)) +
-#         geom_edges(
-#             size = 0.35, alpha = 1,
-#             arrow = arrow(length = unit(2, "pt"), type = "closed")
-#         ) +
-#         geom_nodes(color = "orange", alpha = 0.4) +
-#         theme_blank(base_size = 10) 
-# }
-
-# load(fls[1])
-# 
-# out %>% 
-#     as_tibble() |> 
-#     pivot_longer(`1`:last_col(), names_to = "system", values_to = "nutrients") |> 
-#     mutate(time = as.numeric(time), nutrients = as.numeric(nutrients)) |>  
-#     ggplot(aes(x=time, y=nutrients)) +
-#     geom_line(aes(color = system), size = 0.25, show.legend = T) + 
-#     theme_light()
-
-# exp_design$net[[3]] |> 
-#     igraph::plot.igraph(
-#         vertex.size = 10, vertex.color = "orange", vertex.frame.color = NA,
-#         edge.color = "grey75", edge.width = 0.5, edge.arrow.size = 0.5)
-# 
 
 
 ## extract key results ##
 ## 1. % of systems recovered
 ## 2. are they the same as the control_set?
 ## 3. when do they recovered? is the control_set / n related to faster recovery?
-# 
 plan(multisession, workers = 10)
 tic()
 recovered_systems <- future_map(
@@ -91,6 +63,7 @@ recovered_systems <- recovered_systems |>
 
 # save(recovered_systems, file = "data_processed/pollution_processed_results_degree_rank.Rda")
 #load("data_processed/pollution_processed_results.Rda")
+
 
 tic()
 recovered_systems <- recovered_systems |>
@@ -232,7 +205,38 @@ d <- recovered_systems |>
 d
 # save(recovered_systems, file = "data_processed/pollution_processed_results.Rda")
 
+
 ## Random notes:
 ## while climate is important, do not underestimate other coupling mechanisms
 ## structural control does not provide full power to recover 100% of the connected
 ## system
+## 
+## 
+## Leftover
+## a function for plotting quick the networks:
+# net_plot <- function(x) { #x is the net object
+#     ggplot(ggnetwork::ggnetwork(x, arrow.gap = 0.005) ,
+#            aes(x = x, y = y, xend = xend, yend = yend)) +
+#         geom_edges(
+#             size = 0.35, alpha = 1,
+#             arrow = arrow(length = unit(2, "pt"), type = "closed")
+#         ) +
+#         geom_nodes(color = "orange", alpha = 0.4) +
+#         theme_blank(base_size = 10)
+# }
+# 
+load(fls[289])
+# 
+# out %>%
+#     as_tibble() |>
+#     pivot_longer(`1`:last_col(), names_to = "system", values_to = "nutrients") |>
+#     mutate(time = as.numeric(time), nutrients = as.numeric(nutrients)) |>
+#     ggplot(aes(x=time, y=nutrients)) +
+#     geom_line(aes(color = system), size = 0.25, show.legend = T) +
+#     theme_light()
+
+# exp_design$net[[3]] |>
+#     igraph::plot.igraph(
+#         vertex.size = 10, vertex.color = "orange", vertex.frame.color = NA,
+#         edge.color = "grey75", edge.width = 0.5, edge.arrow.size = 0.5)
+#

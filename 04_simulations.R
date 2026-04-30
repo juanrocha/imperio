@@ -53,6 +53,27 @@ pollution <- function(t, y, params,...){
 
 times <- seq(from = 0, to = 200, by = 0.01)
 
+## If session collapses, here is where to restart
+fls <- dir_info("simulations/pollution/")
+fls %>% 
+    pull(path) %>% 
+    str_remove(".Rda") %>% 
+    str_extract("\\d{1,}$") %>% 
+    as.numeric() %>% sort() #
+
+## find skipped rows:
+exp_design <- exp_design %>% 
+    mutate(path = paste0("simulations/pollution/pollution_expid", exp_id, "_rep", exp_rep, "_file", id, ".Rda"))
+
+exp_design <- exp_design %>% 
+    mutate(missing = !path %in% fls$path)
+
+## reduce exp_design to the missing set
+exp_design <- filter(exp_design, missing == TRUE)
+
+
+
+
 ## run simulations and save results in parallel: First option not working
 # Error in { : task 1 failed - "could not find function "tic""
 cl <- makeCluster(10)
