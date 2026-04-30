@@ -9,7 +9,7 @@ load("data_processed/250225_exp_design.Rda") # when working with pollution
 # load("data_processed/250225_exp_design-resource.Rda") # when working with resource
 exp_design
 
-fls <- dir_ls("simulations_degree_rank/") |> str_subset(pattern = ".Rda")
+fls <- dir_ls("simulations_null/") |> str_subset(pattern = ".Rda")
 
 ## a function for plotting quick the networks:
 # net_plot <- function(x) { #x is the net object
@@ -46,7 +46,6 @@ fls <- dir_ls("simulations_degree_rank/") |> str_subset(pattern = ".Rda")
 ## 3. when do they recovered? is the control_set / n related to faster recovery?
 # 
 plan(multisession, workers = 10)
-
 tic()
 recovered_systems <- future_map(
     fls,
@@ -65,9 +64,19 @@ recovered_systems <- future_map(
             # make sure you're not picking the first dynamics towards equilibrium
             filter(time > 5, any(low_nutrient)) |>
             filter(lag1 == min(lag1)) |>
-            ungroup() |> select(-low_nutrient, lag1) |>
+            ungroup() |> select(-low_nutrient, -lag1)
+        
+        end_round <- out |>
+            as_tibble() |>
+            mutate(across(time:last_col(), as.numeric)) |>
+            pivot_longer(
+                `1`:last_col(), names_to = "system", values_to = "nutrients") |>
+            group_by(system) |> 
+            filter(time == 200) |> 
+            mutate(end_nutrients = nutrients) |> select(-time, -nutrients)
+        
+        rec_sys <-  rec_sys |> left_join(end_round)  |>
             mutate(file = as.character(x))
-
         return(rec_sys)
     }
 )
@@ -111,7 +120,10 @@ a <- recovered_systems |>
     mutate(id = as.numeric(id)) |> 
     arrange(id) |> 
     group_by(id) |> 
-    summarize(recovered = n(), mean_time = mean(time)) |> 
+    # ~2 is the unstable equilibrium in the phase diagram, 5 was the min yini for nutrients
+    mutate(low_nutrients = nutrients < 2, 
+           on_way_recovery = nutrients < 5) |> 
+    summarize(recovered = sum(low_nutrients), mean_time = mean(time)) |> 
     right_join(exp_design |> 
                    mutate(class = as_factor(class))) |> 
     mutate(prop_recovered = recovered / n_size) |> 
@@ -125,11 +137,12 @@ a <- recovered_systems |>
     theme_light(base_size = 6) +
     theme(legend.position = c(0.93,0.2), legend.key.size = unit(2, "mm"))
     #facet_grid(dag~class, scales = "free_x")
-
+a
 
 # 2. are they the same as the control_set?
 # extract first the control set: removes the original lists of mds and fvs, combined in cs
-
+### this commented section is only useful for the real model with control set (mds + fvs); 
+### not for the null models and degre rank simulations. Besides, it is wrong
 # plan(multisession, workers = 10)
 # tic()
 # exp_design <- exp_design |> #head() |>
