@@ -9,7 +9,7 @@ load("data_processed/250225_exp_design.Rda") # when working with pollution
 # load("data_processed/250225_exp_design-resource.Rda") # when working with resource
 exp_design
 
-fls <- dir_ls("simulations_null/") |> str_subset(pattern = ".Rda")
+fls <- dir_ls("simulations/pollution/") |> str_subset(pattern = ".Rda")
 
 
 
@@ -53,7 +53,7 @@ recovered_systems <- future_map(
     }
 )
 toc() #1073.472 for 96 files, 51s for 6 files, 11s in parallel. | 15275.571 sec elapsed in parallel for 9600 files
-# 
+# 66min in new compuer, >9hrs in old, same parallelization
 # head(recovered_systems)
 # 
 # ## because the sims were on parallel, the files were created asynchronously and they are not in order. Thus the object does not follow the id order of exp_design. 
@@ -61,7 +61,7 @@ toc() #1073.472 for 96 files, 51s for 6 files, 11s in parallel. | 15275.571 sec 
 recovered_systems <- recovered_systems |>
     bind_rows()
 
-# save(recovered_systems, file = "data_processed/pollution_processed_results_degree_rank.Rda")
+# save(recovered_systems, file = "data_processed/pollution_processed_results_20260430.Rda")
 #load("data_processed/pollution_processed_results.Rda")
 
 
@@ -128,13 +128,33 @@ a
 #         nest(cs = control_set)
 # toc() #900 s ~15min
 
-b <- recovered_systems |> 
+
+recov_summary <- recovered_systems |> 
+    mutate(id = as.numeric(id)) |> 
+    arrange(id) |>
+    group_by(id) |> 
+    mutate(recovered = end_nutrients < 2) |> 
+    summarize(recovered = sum(recovered))
+
+recov_ids <- recovered_systems |> 
     mutate(id = as.numeric(id)) |> 
     arrange(id) |>
     group_by(id) |> 
     select(system) |> 
     mutate(system = as.numeric(system)) |> 
-    nest(system = system) |> 
+    nest(system = system)
+
+
+## this does not make sense, final system size is smaller than initial. why?
+## check in other simulation experiments, possible bug
+exp_design |> rowwise() |> 
+    mutate(cs = list(params$controlling_set)) |> 
+    ungroup() |> mutate(class = as_factor(class)) |> 
+    left_join(recov_summary) |> 
+    left_join(recov_ids) |> 
+    select(cs, system, n_size) |> head()
+
+b <-  |> 
     right_join(exp_design |> 
                    mutate(class = as_factor(class))) |> 
     #head() |> 
